@@ -37,6 +37,8 @@
 
     --success: #009689;
     --success-tint: #e0f2f0;
+    --info: #005596;
+    --info-tint: #e3edf5;
     --error: #f72717;
     --error-tint: #fde6e4;
 
@@ -80,6 +82,8 @@
 
     --success: #2dab9c;
     --success-tint: #14302c;
+    --info: #8db4cf;
+    --info-tint: #17242e;
     --error: #ff5a4a;
     --error-tint: #3a1a16;
 
@@ -353,6 +357,7 @@ td.gwt-MenuItem.open > .menuDropdown {
 
 .sideButtons {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -852,3 +857,79 @@ body.lvPanning { cursor: grabbing !important; }
 /* with the dock on, the top toolbar keeps edit and zoom tools only */
 body.lvDock .toolbar [data-elm-class],
 body.lvDock .toolbarSepParts { display: none !important; }
+
+/* ---- Freeze and inspect (levantate/canvas/freeze.ts) ---- */
+
+.sideButtons .freezeButton {
+    flex-basis: 100%;
+    color: var(--text);
+}
+
+.sideButtons .freezeButton.isFrozen {
+    background: var(--info-tint);
+    border-color: transparent;
+    color: var(--info);
+}
+
+.freezeBar {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 10px;
+    max-width: calc(100% - 200px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    color: var(--info);
+    font-size: 13px;
+    user-select: none;
+}
+
+.freezeBar > svg { flex: none; }
+
+.freezeTime {
+    margin-right: 4px;
+    font-weight: 600;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.freezeToggle,
+.freezeResume {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+
+.freezeToggle:hover,
+.freezeResume:hover { background: var(--surface); }
+
+.freezeToggle.on {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+}
+
+.freezeToggle:not(.on) { color: var(--text-faint); text-decoration: line-through; }
+
+.freezeResume {
+    border-color: transparent;
+    background: var(--primary);
+    color: var(--primary-fg);
+}
+
+.freezeResume:hover { background: var(--primary); filter: brightness(1.05); }

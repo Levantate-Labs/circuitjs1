@@ -97,6 +97,19 @@ License, version 2 or (at your option) any later version.
 - Options > Show Tool Dock (saved, on by default); URL parameter `dock=0` / `1`
   overrides it.
 
+### Freeze and inspect
+
+- New `ts/levantate/canvas/freeze.ts`: a **Freeze** button under Run/Stop stops
+  the simulation at the current instant (scopes stop with it) and labels the
+  circuit with that instant's values: the current through each two-terminal
+  part with an arrow for its direction, an arrowhead on each wire carrying
+  current, and the voltage at each node (0 V and ground unlabelled). Labels keep
+  clear of each other and of the controls floating over the canvas. A bar at
+  the top left shows the frozen time, toggles for currents and voltages, and
+  Resume. Running, resetting or editing the circuit ends the freeze.
+- Hooks in `UIManager.ts` (button, overlay drawing, ending the freeze);
+  `maestro.css` styles and `--info` colour tokens. Tests: `freeze.test.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

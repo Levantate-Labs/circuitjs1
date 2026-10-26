@@ -46,6 +46,7 @@ import { drawDotGrid, drawHoverHalo, drawSelectionBounds, drawSelectionBox } fro
 import { findGuides, splitPosts, drawGuides, drawReadout, moveText, type DragKind } from "./levantate/canvas/guides";
 import { Minimap } from "./levantate/canvas/minimap";
 import { ToolDock } from "./levantate/canvas/dock";
+import { Freeze, drawFreezeOverlay, floatingRects } from "./levantate/canvas/freeze";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -63,6 +64,7 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 
 // Modified by Levantate Labs, 2026-10-26: Maestro theme (palette, fonts, sliders,
 // side panel, run/stop button), batched drawing. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay.
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -493,6 +495,8 @@ export class UIManager {
     subcircuitBar: SubcircuitBar;
     minimap: Minimap | null = null;   // Levantate Labs (levantate/canvas/minimap.ts)
     dock: ToolDock | null = null;     // Levantate Labs (levantate/canvas/dock.ts)
+    freeze: Freeze | null = null;     // Levantate Labs (levantate/canvas/freeze.ts)
+    freezeButton!: HTMLButtonElement;
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -772,9 +776,17 @@ export class UIManager {
         this.runStopButton.addEventListener('click', () => this.setSimRunning(!this.simIsRunning()));
         this.buttonPanel.appendChild(this.runStopButton);
 
+        // Levantate Labs: stop at this instant and label currents and voltages
+        this.freezeButton = document.createElement('button');
+        this.freezeButton.addEventListener('click', () => {
+            if (Freeze.active) this.setSimRunning(true); else this.freeze?.freeze();
+        });
+        this.buttonPanel.appendChild(this.freezeButton);
+        UIManager.setFreezeLabel(this.freezeButton, false);
+
         // keep Reset and Run/Stop from taking keyboard focus, so a later
         // space/enter keypress doesn't trigger them again
-        for (const b of [this.resetButton, this.runStopButton]) {
+        for (const b of [this.resetButton, this.runStopButton, this.freezeButton]) {
             b.tabIndex = -1;
             b.addEventListener('mousedown', (e) => e.preventDefault());
         }
@@ -888,6 +900,11 @@ export class UIManager {
             partIcon: (cls) => partIcons[cls] ? tb.makeSvg(partIcons[cls], 24) : null,
             run: (menu, item) => this.app.commands.menuPerformed(menu, item),
             beginDrag: (cls, x, y) => this.mouse.beginToolbarDrag(cls, x, y),
+        }, this.canvasWrapper);
+        this.freeze = new Freeze({
+            setRunning: (on) => this.setSimRunning(on),
+            timeText: () => CircuitElm.getTimeText(this.app.sim.t),
+            repaint: () => this.repaint(),
         }, this.canvasWrapper);
         this.mouse.enableDisableMenuItems();
         this.setiFrameHeight();
@@ -1053,6 +1070,7 @@ export class UIManager {
         if (s) {
             if (this.app.stopMessage != null)
                 return;
+            this.endFreeze();
             this.app.simRunning = true;
             UIManager.setRunStopLabel(this.runStopButton, true);
             this.app.timer.scheduleRepeating(this.app.FASTTIMER);
@@ -1066,6 +1084,22 @@ export class UIManager {
 
     simIsRunning(): boolean {
         return this.app.simRunning;
+    }
+
+    // Levantate Labs: leave freeze mode (its labels describe the frozen instant)
+    endFreeze(): void {
+        this.freeze?.release();
+        if (this.freezeButton)
+            UIManager.setFreezeLabel(this.freezeButton, Freeze.active);
+    }
+
+    static setFreezeLabel(b: HTMLButtonElement, frozen: boolean): void {
+        b.className = frozen ? 'topButton freezeButton isFrozen' : 'topButton freezeButton';
+        b.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/></svg>' +
+            (frozen ? Locale.LS("Frozen") : Locale.LS("Freeze"));
+        b.title = frozen ? Locale.LS("Resume the simulation")
+                         : Locale.LS("Freeze this instant and show currents and voltages");
+        b.setAttribute("aria-pressed", String(frozen));
     }
 
     // Shows the current state (dot + "Running"/"Stopped"); clicking toggles it.
@@ -1094,6 +1128,12 @@ export class UIManager {
         perfmon.startContext("updateCircuit()");
 
         this.checkCanvasSize();
+
+        // an edit or reset invalidates the frozen values
+        if (Freeze.active && (this.app.analyzeFlag || this.app.dcAnalysisFlag))
+            this.endFreeze();
+        else if (Freeze.active !== this.freezeButton?.classList.contains('isFrozen'))
+            UIManager.setFreezeLabel(this.freezeButton, Freeze.active);
 
         let didAnalyze = this.app.analyzeFlag;
         if (this.app.analyzeFlag || this.app.dcAnalysisFlag) {
@@ -1308,6 +1348,12 @@ export class UIManager {
         }
 
         this.cvcontext.setTransform(scale, 0, 0, scale, 0, 0);
+        if (Freeze.active && this.freeze != null)
+            drawFreezeOverlay(this.cvcontext, this.elmList as any, this.app.transform, {
+                current: (i) => CircuitElm.getCurrentDText(i),
+                voltage: (v) => CircuitElm.getVoltageText(v),
+            }, { currents: this.freeze.showCurrents, voltages: this.freeze.showVoltages },
+            floatingRects(this.cv));
         if (drag != null && this.mouse.mouseCursorX >= 0)
             drawReadout(this.cvcontext, this.dragReadout(drag), this.mouse.mouseCursorX, this.mouse.mouseCursorY);
 
