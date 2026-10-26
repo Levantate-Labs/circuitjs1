@@ -64,6 +64,23 @@ License, version 2 or (at your option) any later version.
   kept (GPLv2 section 2(c)). The JavaScript API keeps its name
   (`window.CircuitJS1`) so existing integrations keep working.
 
+## 2026-10-28
+
+### UX fixes
+
+- **Current beads** (`CircuitElm.drawDots`): moving current is drawn as round
+  beads with a thin ring in the canvas colour, 24px apart (was 4px squares every
+  16px, which made wires look dashed), filled in one path per segment. Bead
+  speed is unchanged.
+- **Scope labels** (`ScopeOverlays.ts`): drawn with a halo in the card colour so
+  traces underneath don't make them unreadable.
+- **Embedded in a host page** (any `init`, not only exams): the File menu shows
+  only About, and import/export/print/recovery commands and their shortcuts are
+  blocked (the host saves circuits). Upstream's "(saved)" status and the empty
+  "Current Circuit:" heading are hidden.
+- Toast for blocked actions reads "Not available here".
+- Harness: an empty parts box sends `null` (every part), not `[]` (wires only).
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

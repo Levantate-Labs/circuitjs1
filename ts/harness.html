@@ -58,7 +58,8 @@ w 96 336 256 336 0
     circuit: starter,
     exam: document.getElementById('exam').checked,
     lockStarter: document.getElementById('lock').checked,
-    parts: document.getElementById('parts').value.split(',').map(s => s.trim()).filter(Boolean),
+    // empty box = every part (null); the protocol's [] would mean wires only
+    parts: (() => { const p = document.getElementById('parts').value.split(',').map(s => s.trim()).filter(Boolean); return p.length ? p : null; })(),
     theme: 'light', dotGrid: true, running: true,
   });
   document.getElementById('export').onclick = () => send('export');

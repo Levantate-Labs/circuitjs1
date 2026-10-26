@@ -793,3 +793,6 @@ body.lvPanning { cursor: grabbing !important; }
     cursor: pointer;
     touch-action: none;
 }
+
+/* no "Current Circuit:" heading when there's no circuit title (e.g. loaded by a host) */
+.sideLabel:has(+ .sideTitle:empty) { display: none; }

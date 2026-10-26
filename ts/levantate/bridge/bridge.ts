@@ -158,6 +158,7 @@ export class Bridge {
         }
         this.hostOrigin = origin;
 
+        Exam.embedded = true;
         Exam.active = !!msg.exam;
         Exam.allowedParts = Array.isArray(msg.parts) ? new Set(msg.parts.map(String)) : null;
         Exam.enforcing = false;   // the starter circuit may contain any part
@@ -201,11 +202,16 @@ export class Bridge {
             mainMenuItemNames: ui.mainMenuItemNames,
             sidePanel: ui.verticalPanel,
             examHidden: [app.menus.noEditCheckItem._li],
+            fileAbout: app.menus.aboutItem._li,
             onAbout: () => app.commands.menuPerformed("file", "about"),
         });
         // drop the part tool if it was set to one the allow-list now forbids
         if (!Exam.isPartAllowed(ui.mouseModeStr))
             app.commands.menuPerformed("main", "Select");
+
+        // the host saves the circuit, so don't show upstream's "(saved)" status
+        app.savedFlag = false;
+        app.ui.titleLabel.textContent = "";
 
         this.initialized = true;
         this.lastCircuit = UndoManager.withoutSliders(app.dumpCircuit());

@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: lock flag (levLocked). See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: lock flag (levLocked); round current beads. See CHANGES.md.
 
 import { Color } from "./Color";
 import { Point } from "./Point";
@@ -509,7 +509,9 @@ export abstract class CircuitElm implements Editable {
         const dy = pb.y - pa.y;
         const dn = Math.sqrt(dx*dx + dy*dy);
         g.setColor(CircuitElm.currentColor);
-        const ds = 16;
+        // Levantate Labs: 24px between beads (upstream 16) so busy circuits stay
+        // readable; bead speed doesn't depend on the spacing
+        const ds = 24;
         if (pos === this.CURRENT_TOO_FAST || pos === -this.CURRENT_TOO_FAST) {
             // current is moving too fast, avoid aliasing by drawing dots at
             // random position with transparent yellow line underneath
@@ -527,11 +529,24 @@ export abstract class CircuitElm implements Editable {
         pos %= ds;
         if (pos < 0)
             pos += ds;
+        // Levantate Labs (Maestro theme): round beads with a thin ring in the canvas
+        // colour, so moving charge reads as beads on top of the wire instead of a
+        // dashed wire; all of one segment's beads are filled in a single path.
+        const ctx = g.context;
+        ctx.save();
+        ctx.beginPath();
         for (let di = pos; di < dn; di += ds) {
-            const x0 = Math.trunc(pa.x + di*dx/dn);
-            const y0 = Math.trunc(pa.y + di*dy/dn);
-            g.fillRect(x0-2, y0-2, 4, 4);
+            const x0 = pa.x + di*dx/dn;
+            const y0 = pa.y + di*dy/dn;
+            ctx.moveTo(x0 + 2.5, y0);
+            ctx.arc(x0, y0, 2.5, 0, 2 * Math.PI);
         }
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = CircuitElm.app.getBackgroundColor().getHexValue();
+        ctx.stroke();
+        ctx.fillStyle = CircuitElm.currentColor.getHexValue();
+        ctx.fill();
+        ctx.restore();
     }
 
     addCurCount(c: number, a: number): number {

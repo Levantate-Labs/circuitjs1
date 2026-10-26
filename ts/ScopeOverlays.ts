@@ -16,11 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26/28: Maestro theme / batched drawing; label halo. See CHANGES.md.
 
 import { CircuitElm } from "./CircuitElm";
 import { Graphics } from "./Graphics";
 import { Locale } from "./Locale";
+import { Theme } from "./levantate/theme";
 import { ScopeDataIterator } from "./ScopeDataIterator";
 import { ScopePlot } from "./ScopePlot";
 import type { Scope } from "./Scope";
@@ -259,12 +260,25 @@ export class ScopeOverlays {
     // Modified by Levantate Labs, 2026-10-26: inset the overlay text from the
     // scope card's edge (Maestro theme).
     draw(g: Graphics): void {
-        g.context.save();
-        g.context.translate(8, 6);
+        const ctx = g.context;
+        ctx.save();
+        ctx.translate(8, 6);
+        // labels get a halo in the card colour so traces drawn underneath don't
+        // make them unreadable
+        g.drawString = (s: string, x: number, y: number) => {
+            ctx.save();
+            ctx.lineWidth = 3;
+            ctx.lineJoin = "round";
+            ctx.strokeStyle = Theme.palette.scopeBg;
+            ctx.strokeText(s, x, y);
+            ctx.restore();
+            ctx.fillText(s, x, y);
+        };
         try {
             this.drawOverlays(g);
         } finally {
-            g.context.restore();
+            delete (g as any).drawString;   // back to Graphics.prototype.drawString
+            ctx.restore();
         }
     }
 

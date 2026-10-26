@@ -21,7 +21,17 @@ const BLOCKED_ITEMS = new Set([
     "newblankcircuit", "devtools", "subcircuits", "convertWires", "createTest", "shortcuts",
 ]);
 
+// File-menu commands blocked whenever the lab is embedded in a host page (even
+// outside exams): the host saves and loads circuits itself.
+const EMBEDDED_BLOCKED_ITEMS = new Set([
+    "importfromlocalfile", "importfromtext", "importfromdropbox", "exportasurl",
+    "exportaslocalfile", "exportastext", "exportasimage", "copypng", "exportassvg",
+    "print", "recover", "newwindow", "save", "saveas",
+]);
+
 export const Exam = {
+    // running inside a host page (set by the bridge's init): File menu trimmed
+    embedded: false,
     // exam mode is on: menus trimmed, no local storage, blocked commands
     active: false,
     // part allow-list (class names); null = everything allowed
@@ -49,9 +59,11 @@ export const Exam = {
     blocks(menu: string, item: string): boolean {
         if (menu === "main" && !this.isPartAllowed(item) && !isModeName(item))
             return true;
-        if (!this.active)
-            return false;
         if (item === "about")
+            return false;
+        if (this.embedded && EMBEDDED_BLOCKED_ITEMS.has(item))
+            return true;
+        if (!this.active)
             return false;
         if (menu === "circuits" || BLOCKED_ITEMS.has(item))
             return true;
@@ -80,6 +92,8 @@ interface ExamUIRefs {
     // items that only make sense outside exams (e.g. Options > Disable Editing,
     // which would let a student unlock a submitted circuit)
     examHidden: (HTMLElement | null)[];
+    // the File menu's About item: the only File entry left when embedded
+    fileAbout: HTMLElement | null;
     onAbout: () => void;
 }
 
@@ -92,6 +106,13 @@ export function applyExamUI(refs: ExamUIRefs): void {
         refs.topItems.get(key)?.classList.toggle("lvHidden", examOn);
     for (const el of refs.examHidden)
         el?.classList.toggle("lvHidden", examOn);
+
+    // embedded (not in an exam): the File menu keeps only About
+    const fileMenu = refs.topItems.get("file")?.querySelector(":scope > .menuDropdown");
+    if (fileMenu != null) {
+        for (const el of Array.from(fileMenu.children) as HTMLElement[])
+            el.classList.toggle("lvHidden", Exam.embedded && el !== refs.fileAbout);
+    }
 
     // parts not in the allow-list disappear from the Draw menu and the toolbar
     refs.mainMenuItems.forEach((item, i) => {

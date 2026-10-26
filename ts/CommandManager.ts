@@ -60,7 +60,7 @@ export class CommandManager {
         // Levantate Labs: exam mode and the part allow-list block some commands
         if (Exam.blocks(menu, item) || this.flipWouldMoveLockedParts(item)) {
             Exam.report("blocked", item);
-            this.app.ui?.showToast?.(Locale.LS("Not available in this question"));
+            this.app.ui?.showToast?.(Locale.LS("Not available here"));
             return;
         }
         if ((menu == "edit" || menu == "main" || menu == "scopes") && this.app.ui?.isReadOnly()) {
