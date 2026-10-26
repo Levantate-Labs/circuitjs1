@@ -82,6 +82,21 @@ License, version 2 or (at your option) any later version.
 - Toast for blocked actions reads "Not available here".
 - Harness: an empty parts box sends `null` (every part), not `[]` (wires only).
 
+### Tool dock (roadmap slice L8a)
+
+- New `ts/levantate/canvas/dock.ts`: a floating dock at the bottom centre of
+  the canvas with Select, Hand (pan), the common parts (wire, resistor,
+  capacitor, inductor, diode, voltage source, ground, switch, op amp), "More
+  parts" (opens the searchable part palette) and Add Grading Point. Click a part
+  to pick it or press and drag it onto the canvas; the active tool is
+  highlighted. Part buttons follow an exam's part allow-list and the grading pin
+  is hidden in exams.
+- While the dock is on, the toolbar's parts group is hidden (`Toolbar.ts` tags
+  its separator `toolbarSepParts`) and zoom to fit leaves room for the dock
+  (`UIManager.centerCircuit`).
+- Options > Show Tool Dock (saved, on by default); URL parameter `dock=0` / `1`
+  overrides it.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

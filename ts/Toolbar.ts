@@ -55,7 +55,10 @@ export class Toolbar {
         this.element.appendChild(this.createIconButton("zoom-in", "Zoom In", new MyCommand("zoom", "zoomin")));
         this.element.appendChild(this.createIconButton("zoom-out", "Zoom Out", new MyCommand("zoom", "zoomout")));
 
-        this.element.appendChild(Toolbar.separator());
+        // (the parts group hides when the floating tool dock is on; levantate/canvas/dock.ts)
+        const partsSep = Toolbar.separator();
+        partsSep.classList.add("toolbarSepParts");
+        this.element.appendChild(partsSep);
         this.element.appendChild(this.createIconButtonForClass(this.wireIcon, "WireElm"));
         this.resistorButton = this.createIconButtonForClass(this.resistorIcon, "ResistorElm");
         this.element.appendChild(this.resistorButton);

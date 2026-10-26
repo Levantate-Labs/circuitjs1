@@ -45,6 +45,7 @@ import { CanvasNavigation } from "./levantate/canvas/navigation";
 import { drawDotGrid, drawHoverHalo, drawSelectionBounds, drawSelectionBox } from "./levantate/canvas/visuals";
 import { findGuides, splitPosts, drawGuides, drawReadout, moveText, type DragKind } from "./levantate/canvas/guides";
 import { Minimap } from "./levantate/canvas/minimap";
+import { ToolDock } from "./levantate/canvas/dock";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -491,6 +492,7 @@ export class UIManager {
     toolbar: Toolbar;
     subcircuitBar: SubcircuitBar;
     minimap: Minimap | null = null;   // Levantate Labs (levantate/canvas/minimap.ts)
+    dock: ToolDock | null = null;     // Levantate Labs (levantate/canvas/dock.ts)
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -651,6 +653,8 @@ export class UIManager {
             qp.getBooleanValue("dotGrid", this.getOptionFromStorage("dotGrid", true)));
         this.menus.minimapCheckItem.setState(
             qp.getBooleanValue("minimap", this.getOptionFromStorage("minimap", true)));
+        this.menus.dockCheckItem.setState(
+            qp.getBooleanValue("dock", this.getOptionFromStorage("dock", true)));
         this.menus.euroResistorCheckItem.setState(euroSetting);
         this.menus.euroResistorCheckItem.setCommand({
             execute: () => {
@@ -860,6 +864,31 @@ export class UIManager {
             contentBounds: () => this.getCircuitBounds(),
             repaint: () => this.repaint(),
         }, this.canvasWrapper);
+        const tb: any = this.toolbar;
+        const partIcons: Record<string, string> = {
+            WireElm: tb.wireIcon, ResistorElm: tb.resistorIcon, CapacitorElm: tb.capacitorIcon,
+            InductorElm: tb.inductIcon, DiodeElm: tb.diodeIcon, DCVoltageElm: tb.voltage2Icon,
+            GroundElm: tb.groundIcon, SwitchElm: tb.switchIcon, OpAmpElm: tb.opAmpBotIcon,
+        };
+        this.dock = new ToolDock({
+            enabled: () => this.menus.dockCheckItem.getState() && this.menus.toolbarCheckItem.getState(),
+            canvasHeight: () => this.canvasHeight,
+            circuitAreaHeight: () => this.app.circuitArea.height,
+            mouseMode: () => this.mouse.mouseMode,
+            modeSelect: MouseManager.MODE_SELECT,
+            modeDragAll: MouseManager.MODE_DRAG_ALL,
+            modeAddElm: MouseManager.MODE_ADD_ELM,
+            partMode: () => this.mouseModeStr,
+            labelFor: (cls) => this.getLabelTextForClass(cls) ?? cls,
+            shortcutFor: (cls) => {
+                for (const [code, c] of this.app.shortcuts)
+                    if (c === cls) return String.fromCharCode(code);
+                return null;
+            },
+            partIcon: (cls) => partIcons[cls] ? tb.makeSvg(partIcons[cls], 24) : null,
+            run: (menu, item) => this.app.commands.menuPerformed(menu, item),
+            beginDrag: (cls, x, y) => this.mouse.beginToolbarDrag(cls, x, y),
+        }, this.canvasWrapper);
         this.mouse.enableDisableMenuItems();
         this.setiFrameHeight();
 
@@ -963,6 +992,9 @@ export class UIManager {
             const h = Math.round(cheight * this.app.scopeManager.scopeHeightFraction);
             cheight -= h;
         }
+        // Levantate Labs: keep the circuit clear of the floating tool dock
+        if (this.dock != null && this.menus.dockCheckItem.getState() && this.menus.toolbarCheckItem.getState())
+            cheight -= 64;
 
         if (bounds != null)
             scale = Math.min(this.app.circuitArea.width / (bounds.width + 140),
@@ -1288,6 +1320,7 @@ export class UIManager {
         perfmon.stopContext(); // graphics
         CanvasNavigation.instance?.afterPaint();
         this.minimap?.update();
+        this.dock?.update();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
             stopHighlightElm.setMouseElm(false);

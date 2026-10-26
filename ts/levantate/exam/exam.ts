@@ -114,10 +114,11 @@ export function applyExamUI(refs: ExamUIRefs): void {
         const name = refs.mainMenuItemNames[i];
         item._li?.classList.toggle("lvHidden", !Exam.isPartAllowed(name) && !isModeName(name));
     });
-    for (const el of Array.from(refs.toolbar.querySelectorAll<HTMLElement>("[data-elm-class]")))
+    // toolbar, its variant pickers and the tool dock all tag part buttons
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-elm-class]")))
         el.classList.toggle("lvHidden", !Exam.isPartAllowed(el.dataset.elmClass!));
-    for (const el of Array.from(document.querySelectorAll<HTMLElement>(".palette-container [data-elm-class]")))
-        el.classList.toggle("lvHidden", !Exam.isPartAllowed(el.dataset.elmClass!));
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-exam-hidden]")))
+        el.classList.toggle("lvHidden", examOn);
     // submenus left with nothing visible
     for (const li of Array.from(document.querySelectorAll<HTMLElement>("li.hasSubmenu"))) {
         const visible = li.querySelectorAll(":scope > .menuDropdown > .menuItem:not(.lvHidden)").length;

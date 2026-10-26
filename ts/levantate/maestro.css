@@ -796,3 +796,59 @@ body.lvPanning { cursor: grabbing !important; }
 
 /* no "Current Circuit:" heading when there's no circuit title (e.g. loaded by a host) */
 .sideLabel:has(+ .sideTitle:empty) { display: none; }
+
+/* ---- Tool dock (levantate/canvas/dock.ts) ---- */
+
+.toolDock {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-lg);
+    max-width: calc(100% - 32px);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.toolDockButton {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+
+.toolDockButton svg { width: 22px; height: 22px; display: block; }
+
+.toolDockButton:hover { background: var(--surface); color: var(--text-strong); }
+
+.toolDockButton.active { background: var(--primary-tint); color: var(--primary); }
+
+.toolDockButton:active { transform: translateY(1px); }
+
+.toolDockSep {
+    flex: none;
+    width: 1px;
+    height: 22px;
+    margin: 0 4px;
+    background: var(--border);
+}
+
+/* with the dock on, the top toolbar keeps edit and zoom tools only */
+body.lvDock .toolbar [data-elm-class],
+body.lvDock .toolbarSepParts { display: none !important; }
