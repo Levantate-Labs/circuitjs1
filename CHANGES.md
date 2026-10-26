@@ -66,6 +66,23 @@ License, version 2 or (at your option) any later version.
 
 ## 2026-10-27
 
+### Precision tools (roadmap slice L7)
+
+- **Alignment guides** (`ts/levantate/canvas/guides.ts`): while parts are
+  dragged, placed or rewired by an end, dashed magenta guides show every
+  terminal of the moving parts that lines up (same x or y) with a terminal of a
+  part that stays put. Positions already snap to the grid, so the guides
+  confirm alignment rather than pull parts around. A single unselected part
+  dragged by the cursor counts as moving (upstream selects it only for the
+  instant of each move).
+- **Distance readout**: a pill next to the cursor shows how far the drag has
+  gone, in grid squares (e.g. "← 5  ↑ 4"), or the size of a part being placed.
+- **Minimap** (`ts/levantate/canvas/minimap.ts`): bottom-left overview of the
+  whole circuit with the visible area outlined; click or drag on it to move the
+  view. It appears only when part of the circuit is off-screen. Options > Show
+  Minimap (saved, on by default); URL parameter `minimap=0` / `1` overrides it.
+- `levantate/theme.ts`: guide and minimap colours. Tests: `guides.test.ts`.
+
 ### Embedding bridge and exam mode (roadmap slice L3)
 
 - **Protocol:** `docs/bridge-protocol.md` (v1). A host page drives the

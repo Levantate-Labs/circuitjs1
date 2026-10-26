@@ -43,6 +43,8 @@ import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
 import { Theme } from "./levantate/theme";
 import { CanvasNavigation } from "./levantate/canvas/navigation";
 import { drawDotGrid, drawHoverHalo, drawSelectionBounds, drawSelectionBox } from "./levantate/canvas/visuals";
+import { findGuides, splitPosts, drawGuides, drawReadout, moveText, type DragKind } from "./levantate/canvas/guides";
+import { Minimap } from "./levantate/canvas/minimap";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -488,6 +490,7 @@ export class UIManager {
 
     toolbar: Toolbar;
     subcircuitBar: SubcircuitBar;
+    minimap: Minimap | null = null;   // Levantate Labs (levantate/canvas/minimap.ts)
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -646,6 +649,8 @@ export class UIManager {
         this.menus.crossHairCheckItem.setState(this.getOptionFromStorage("crossHair", false));
         this.menus.dotGridCheckItem.setState(
             qp.getBooleanValue("dotGrid", this.getOptionFromStorage("dotGrid", true)));
+        this.menus.minimapCheckItem.setState(
+            qp.getBooleanValue("minimap", this.getOptionFromStorage("minimap", true)));
         this.menus.euroResistorCheckItem.setState(euroSetting);
         this.menus.euroResistorCheckItem.setCommand({
             execute: () => {
@@ -846,6 +851,15 @@ export class UIManager {
         this.app.mouse = this.mouse = new MouseManager(this.app, this);
         this.mouse.register(this.cv);
         CanvasNavigation.instance?.mountZoomPill(this.canvasWrapper);
+        this.minimap = new Minimap({
+            enabled: () => this.menus.minimapCheckItem.getState(),
+            transform: this.app.transform,
+            get circuitArea() { return UIManager.theUI.app.circuitArea; },
+            canvasHeight: () => this.canvasHeight,
+            elms: () => this.elmList,
+            contentBounds: () => this.getCircuitBounds(),
+            repaint: () => this.repaint(),
+        }, this.canvasWrapper);
         this.mouse.enableDisableMenuItems();
         this.setiFrameHeight();
 
@@ -1250,7 +1264,20 @@ export class UIManager {
         /*if (WireRouter.lastRouter != null)
             WireRouter.lastRouter.drawGrid(g.context, true);*/
 
+        const drag = this.dragKind();
+        if (drag != null) {
+            // a single unselected part dragged by the cursor counts as moving too
+            const also = new Set<any>(this.mouse.dragMovedElms);
+            if (drag === "selection" && this.mouse.getMouseElm() != null && !this.elmList.some((e) => e.isSelected()))
+                also.add(this.mouse.getMouseElm());
+            const { moving, fixed } = splitPosts(this.elmList, drag, this.mouse.dragElm,
+                                                 this.mouse.getMouseElm(), this.mouse.draggingPost, also);
+            drawGuides(this.cvcontext, findGuides(moving, fixed), this.app.transform[0]);
+        }
+
         this.cvcontext.setTransform(scale, 0, 0, scale, 0, 0);
+        if (drag != null && this.mouse.mouseCursorX >= 0)
+            drawReadout(this.cvcontext, this.dragReadout(drag), this.mouse.mouseCursorX, this.mouse.mouseCursorY);
 
         perfmon.startContext("drawBottomArea()");
         this.drawBottomArea(g);
@@ -1260,6 +1287,7 @@ export class UIManager {
 
         perfmon.stopContext(); // graphics
         CanvasNavigation.instance?.afterPaint();
+        this.minimap?.update();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
             stopHighlightElm.setMouseElm(false);
@@ -1425,6 +1453,28 @@ export class UIManager {
             for (i = 0; info[i] != null; i++)
                 g.drawString(info[i]!, x, ybase + 15 * (i + 1));
         }
+    }
+
+    // Levantate Labs: what kind of drag is in progress, for alignment guides
+    private dragKind(): DragKind | null {
+        const m = this.mouse;
+        if (m.dragElm != null && (m.dragElm.x !== m.dragElm.x2 || m.dragElm.y !== m.dragElm.y2))
+            return "place";
+        if (m.tempMouseMode === MouseManager.MODE_DRAG_SELECTED && m.dragging)
+            return "selection";
+        if (m.tempMouseMode === MouseManager.MODE_DRAG_POST && m.draggingPost >= 0 && m.getMouseElm() != null)
+            return "post";
+        return null;
+    }
+
+    // distance moved (or, when placing, the new part's size) in grid squares
+    private dragReadout(kind: DragKind): string {
+        const m = this.mouse, grid = this.app.gridSize;
+        if (kind === "place" && m.dragElm != null)
+            return moveText((m.dragElm.x2 - m.dragElm.x) / grid, (m.dragElm.y2 - m.dragElm.y) / grid);
+        const dx = m.dragGridX - this.app.snapGrid(m.initDragGridX);
+        const dy = m.dragGridY - this.app.snapGrid(m.initDragGridY);
+        return moveText(Math.round(dx / grid), Math.round(dy / grid));
     }
 
     getBackgroundColor(): Color {

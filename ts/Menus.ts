@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -275,6 +275,7 @@ export class Menus {
     smallGridCheckItem       = new CheckItem();
     crossHairCheckItem       = new CheckItem();
     dotGridCheckItem         = new CheckItem();   // Levantate Labs: canvas dot grid
+    minimapCheckItem         = new CheckItem();   // Levantate Labs: canvas minimap
     showValuesCheckItem      = new CheckItem(true);
     conductanceCheckItem     = new CheckItem();
     euroResistorCheckItem    = new CheckItem();
@@ -446,6 +447,11 @@ export class Menus {
         optMenu.addCheckItem(this.dotGridCheckItem, "Show Dot Grid");
         this.dotGridCheckItem.setCommand({ execute: () => {
             this.app.ui?.setOptionInStorage("dotGrid", this.dotGridCheckItem.getState());
+            this.app.repaint();
+        } });
+        optMenu.addCheckItem(this.minimapCheckItem, "Show Minimap");
+        this.minimapCheckItem.setCommand({ execute: () => {
+            this.app.ui?.setOptionInStorage("minimap", this.minimapCheckItem.getState());
             this.app.repaint();
         } });
         optMenu.addCheckItem(this.crossHairCheckItem, "Show Cursor Cross Hairs");

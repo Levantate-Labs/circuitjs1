@@ -42,6 +42,10 @@ export interface CanvasPalette {
     canvasDot: string;     // dot grid on the circuit canvas
     gradePin: string;      // grading point pins
     gradePinText: string;
+    guide: string;         // alignment guides and drag readout
+    guideText: string;
+    minimapBg: string;
+    minimapInk: string;
     traceVoltage: string;
     traceCurrent: string;
     traceOther: string;
@@ -68,6 +72,10 @@ export const MAESTRO_LIGHT: CanvasPalette = {
     canvasDot: "#c9c1b1",
     gradePin: "#f95c4b",
     gradePinText: "#ffffff",
+    guide: "#d6338f",
+    guideText: "#ffffff",
+    minimapBg: "#ffffff",
+    minimapInk: "#7a7a7a",
     traceVoltage: "#104e64",
     traceCurrent: "#f95c4b",
     traceOther: "#3d3d3d",
@@ -95,6 +103,10 @@ export const MAESTRO_DARK: CanvasPalette = {
     canvasDot: "#3a352c",
     gradePin: "#ff5a4a",
     gradePinText: "#14130f",
+    guide: "#f06fb5",
+    guideText: "#14130f",
+    minimapBg: "#1d1b16",
+    minimapInk: "#8f8a7e",
     traceVoltage: "#4a93ad",
     traceCurrent: "#ff5a4a",
     traceOther: "#d4d0c8",
