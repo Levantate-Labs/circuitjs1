@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
 
 // values with sliders
 import { CircuitElm } from "./CircuitElm";
@@ -137,7 +138,7 @@ export class Adjustable {
     createSliderWithValue(sim: CirSim, value: number): void {
         const lbl = document.createElement("label");
         lbl.textContent = this.sliderText;
-        lbl.classList.add("topSpace");
+        lbl.classList.add("topSpace", "sideLabel");  // sideLabel: Levantate Labs Maestro theme, 2026-10-26
         this.label = lbl;
         sim.addWidgetToVerticalPanel(lbl);
         const intValue = this.valueToSliderPosition(value);

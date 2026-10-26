@@ -37,18 +37,10 @@ export class Toolbar {
     private globalPopupCloserInstalled = false;
 
     constructor() {
+        // Modified by Levantate Labs, 2026-10-26: colours, spacing, hover and active
+        // states moved to CSS classes (levantate/maestro.css) for the Maestro theme.
         this.element = document.createElement('div');
-        const style = this.element.style;
-        style.padding = '2px';
-        style.backgroundColor = '#f8f8f8';
-        style.borderWidth = '1px';
-        style.borderStyle = 'solid';
-        style.borderColor = '#ccc';
-        style.display = 'flex';
-        style.alignItems = 'center';
-        style.flexWrap = 'nowrap';
-        style.overflow = 'hidden';
-        style.boxSizing = 'border-box';
+        this.element.className = 'toolbar';
 
         this.element.appendChild(this.createIconButton("reply",   "Undo", new MyCommand("edit", "undo")));
         this.element.appendChild(this.createIconButton("forward", "Redo", new MyCommand("edit", "redo")));
@@ -58,10 +50,12 @@ export class Toolbar {
         this.element.appendChild(this.createIconButton("clone", "Duplicate", new MyCommand("edit", "duplicate")));
         this.element.appendChild(this.createIconButton("search", "Find Component/Command...", new MyCommand("edit", "search")));
 
+        this.element.appendChild(Toolbar.separator());
         this.element.appendChild(this.createIconButton("zoom-11", "Zoom 100%", new MyCommand("zoom", "zoom100")));
         this.element.appendChild(this.createIconButton("zoom-in", "Zoom In", new MyCommand("zoom", "zoomin")));
         this.element.appendChild(this.createIconButton("zoom-out", "Zoom Out", new MyCommand("zoom", "zoomout")));
 
+        this.element.appendChild(Toolbar.separator());
         this.element.appendChild(this.createIconButtonForClass(this.wireIcon, "WireElm"));
         this.resistorButton = this.createIconButtonForClass(this.resistorIcon, "ResistorElm");
         this.element.appendChild(this.resistorButton);
@@ -101,6 +95,12 @@ export class Toolbar {
 
     setModeLabel(text: string): void { this.modeLabel.textContent = text; }
 
+    private static separator(): HTMLElement {
+        const sep = document.createElement('span');
+        sep.className = 'toolbarSep';
+        return sep;
+    }
+
     private createIconButtonForClass(icon: string, cls: string): HTMLElement {
         const app = CirSim.theApp;
         return this.createIconButton(icon, app.getLabelTextForClass(cls) ?? cls, new MyCommand("main", cls));
@@ -115,25 +115,15 @@ export class Toolbar {
             iconLabel.classList.add("cirjsicon-" + iconClass);
         iconLabel.title = Locale.LS(tooltip);
 
-        // Style the icon button
-        const style = iconLabel.style;
-        style.fontSize = '24px';
-        style.color = '#333';
-        style.padding = '1px';
-        style.marginRight = '5px';
-        style.cursor = 'pointer';
+        iconLabel.classList.add('toolbarButton');
         if (iconClass.startsWith("<svg"))
-            style.paddingTop = '5px';
-        style.touchAction = 'none';
-
-        // Add hover effect for the button
-        iconLabel.addEventListener('mouseover', () => iconLabel.style.color = '#007bff');
-        iconLabel.addEventListener('mouseout', () => iconLabel.style.color = '#333');
+            iconLabel.classList.add('toolbarSvg');
+        iconLabel.setAttribute('role', 'button');
+        iconLabel.setAttribute('aria-label', Locale.LS(tooltip));
+        iconLabel.style.touchAction = 'none';
 
         // Add a click handler to perform the action
         iconLabel.addEventListener('click', () => {
-            // un-highlight
-            iconLabel.style.color = '#333';
             if (iconLabel === this.activeButton) {
                 new MyCommand("main", "Select").execute();
                 this.activeButton = null;
@@ -210,12 +200,12 @@ export class Toolbar {
             // there's no touch equivalent of a real mouseout, so the hover highlight
             // this element's mouseover handler applied (on touchstart, above) would
             // otherwise be left stuck on -- just clear it directly
-            el.style.color = '#333';
+            el.classList.remove('hover');
         }, { passive: false });
         el.addEventListener('touchcancel', (e: TouchEvent) => {
             const t = e.changedTouches[0];
             document.dispatchEvent(new MouseEvent('mouseup', { clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true }));
-            el.style.color = '#333';
+            el.classList.remove('hover');
         }, { passive: true });
     }
 
@@ -284,20 +274,9 @@ export class Toolbar {
         const iconLabel = this.createIconButton(info[0], app.getLabelTextForClass(info[1]) ?? info[1], mainCommand);
 
         const paletteContainer = document.createElement('div');
+        // positioned by the hover handler below; look comes from .palette-container
         paletteContainer.style.display = 'none';
         paletteContainer.className = 'palette-container';
-
-        // Apply CSS styles for positioning and visibility
-        const paletteStyle = paletteContainer.style;
-        paletteStyle.position = 'absolute';
-        paletteStyle.zIndex = '1000';
-        paletteStyle.backgroundColor = '#ffffff';
-        paletteStyle.borderWidth = '1px';
-        paletteStyle.borderColor = '#ccc';
-        paletteStyle.borderStyle = 'solid';
-        paletteStyle.padding = '5px';
-        paletteStyle.display = 'none';
-        paletteStyle.flexDirection = 'column';
 
         for (let i = 0; i < info.length; i += 2) {
             // Create each variant button
@@ -305,12 +284,8 @@ export class Toolbar {
             variantButton.innerHTML = this.makeSvg(info[i], 40);
             variantButton.title = app.getLabelTextForClass(info[i + 1]) ?? info[i + 1];
 
-            // Style the variant button
-            const variantStyle = variantButton.style;
-            variantStyle.color = '#333';
-            //variantStyle.padding = '5px';
-            variantStyle.cursor = 'pointer';
-            variantStyle.touchAction = 'none';
+            variantButton.className = 'paletteItem';
+            variantButton.style.touchAction = 'none';
 
             const command = new MyCommand("main", info[i + 1]);
             const smallSvg = this.makeSvg(info[i], 24);
@@ -389,24 +364,18 @@ export class Toolbar {
     }
 
     private styleModeLabel(el: HTMLElement): void {
-        el.style.fontSize = '16px';
-        el.style.color = '#333';
-        el.style.paddingRight = '10px';
-        el.style.whiteSpace = 'nowrap';
+        el.className = 'toolbarMode';
     }
 
     highlightButton(key: string): void {
         // Deactivate the currently active button
-        if (this.activeButton !== null) {
-            this.activeButton.style.color = '#333';  // Reset color
-            this.activeButton.style.backgroundColor = '';
-        }
+        if (this.activeButton !== null)
+            this.activeButton.classList.remove('active');
 
         // Activate the new button
         const newActiveButton = this.highlightableButtons.get(key) ?? null;
         if (newActiveButton !== null) {
-            newActiveButton.style.color = '#007bff';  // Active color
-            newActiveButton.style.backgroundColor = '#e6f7ff';
+            newActiveButton.classList.add('active');
             this.activeButton = newActiveButton;
         }
     }
@@ -421,8 +390,8 @@ export class Toolbar {
            "</g></svg>";
 
     readonly resistorIcon = "<svg> <g transform='scale(.5,.5) translate(-544,-297)'>" +
-      "<path stroke='#000000' d=' M 544 320 L 552 320' stroke-width='3'/>" +
-      "<path stroke='#000000' d=' M 584 320 L 592 320' stroke-width='3'/>" +
+      "<path stroke='currentColor' d=' M 544 320 L 552 320' stroke-width='3'/>" +
+      "<path stroke='currentColor' d=' M 584 320 L 592 320' stroke-width='3'/>" +
       "<g transform='matrix(1,0,0,1,552,320)'><path fill='none' stroke='currentColor' " +
       "d=' M 0 0 L 2 6 L 6 -6 L 10 6 L 14 -6 L 18 6 L 22 -6 L 26 6 L 30 -6 L 32 0' stroke-width='2'/> </g> </g> </svg>";
     readonly euroResistorIcon = "<svg><g transform='translate(97.71,-28.71) scale(0.428571)'><path fill='none' stroke='currentColor' d=' M -224 96 L -216 96' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M -184 96 L -176 96' stroke-linecap='round' stroke-width='3' /><g transform='matrix(1,0,0,1,-216,96)'><rect fill='none' stroke='currentColor' x='0' y='-6' width='32' height='12' stroke-linecap='round' stroke-width='3' /></g><path fill='currentColor' stroke='currentColor' d=' M -221 96 A 3 3 0 1 1 -221.00026077471009 95.96044522459944 Z' /><path fill='currentColor' stroke='currentColor' d=' M -173 96 A 3 3 0 1 1 -173.00026077471009 95.96044522459944 Z' /></g></svg>";

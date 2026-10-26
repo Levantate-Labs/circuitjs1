@@ -1,0 +1,675 @@
+/*
+    Copyright (C) 2026 Levantate Labs
+
+    Maestro theme for the Levantate Labs fork of CircuitJS1. Part of CircuitJS1,
+    distributed under the GNU General Public License, version 2 or (at your
+    option) any later version. See COPYING.txt.
+
+    Loaded after ../style.css (see main.ts), so it overrides upstream rules of the
+    same specificity. Colour values mirror levantate/theme.ts, which the canvas uses.
+    The theme follows Options > White Background: on = light, off = dark
+    (theme.ts sets <html data-theme>).
+*/
+
+:root {
+    --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif;
+
+    --bg: #f6f4f1;
+    --surface: #efece6;
+    --card: #ffffff;
+    --card-hover: #fcfbf9;
+    --border: #e4ded2;
+    --border-strong: #d6cfc0;
+
+    --text-strong: #000000;
+    --text: #484b52;
+    --text-muted: #7a7a7a;
+    --text-faint: #ababab;
+
+    --primary: #f95c4b;
+    --primary-hover: #eb4838;
+    --primary-fg: #f6f4f1;
+    --primary-tint: #f6e5e0;
+    --primary-ring: rgba(249, 92, 75, 0.22);
+
+    --accent: #104e64;
+    --accent-tint: #e7eef0;
+
+    --success: #009689;
+    --success-tint: #e0f2f0;
+    --error: #f72717;
+    --error-tint: #fde6e4;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    --backdrop: rgba(20, 19, 15, 0.32);
+
+    --r-sm: 4px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-xl: 16px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    --bg: #0d0d0d;
+    --surface: #201d18;
+    --card: #1d1b16;
+    --card-hover: #25221c;
+    --border: #2e2a22;
+    --border-strong: #3d382e;
+
+    --text-strong: #f6f4f1;
+    --text: #c0bcb2;
+    --text-muted: #8f8a7e;
+    --text-faint: #6c685e;
+
+    --primary: #ff5a4a;
+    --primary-hover: #ff8273;
+    --primary-fg: #14130f;
+    --primary-tint: #4a2c25;
+    --primary-ring: rgba(255, 107, 90, 0.28);
+
+    --accent: #4a93ad;
+    --accent-tint: #16252b;
+
+    --success: #2dab9c;
+    --success-tint: #14302c;
+    --error: #ff5a4a;
+    --error-tint: #3a1a16;
+
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --backdrop: rgba(0, 0, 0, 0.55);
+
+    color-scheme: dark;
+}
+
+/* ---- Base ---- */
+
+body, table td, select, button, input, textarea {
+    font-family: var(--font-sans);
+    font-size: 13px;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+    background: var(--primary-tint);
+    color: var(--text-strong);
+}
+
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+}
+
+.disabled {
+    color: var(--text-faint);
+}
+
+/* ---- Menu bar ---- */
+
+.gwt-MenuBar-horizontal {
+    background: var(--card);
+    border: 0;
+    border-bottom: 1px solid var(--border);
+}
+
+td.gwt-MenuItem {
+    padding: 0 12px;
+    vertical-align: middle;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 13px !important;
+    font-family: var(--font-sans);
+    border-radius: var(--r-md);
+    transition: background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+
+td.gwt-MenuItem.open {
+    background: var(--surface);
+    color: var(--text-strong);
+}
+
+@media (hover: hover) {
+    td.gwt-MenuItem:hover {
+        background: var(--surface);
+        color: var(--text-strong);
+    }
+}
+
+/* ---- Dropdowns and context menus ---- */
+
+.menuDropdown,
+.elmContextMenu {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    min-width: 220px;
+    color: var(--text);
+    font-weight: 400;
+}
+
+td.gwt-MenuItem.open > .menuDropdown {
+    margin-top: 2px;
+    animation: maestroMenuIn 140ms var(--ease-out);
+}
+
+.menuDropdown .menuDropdown,
+.elmContextMenu .menuDropdown {
+    margin-left: 4px;
+    top: -7px;
+}
+
+@keyframes maestroMenuIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.menuItem {
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: var(--r-md);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+}
+
+.menuItem:hover,
+.hasSubmenu.open,
+.hasSubmenu.open:hover {
+    background: var(--surface);
+    color: var(--text-strong);
+}
+
+@media (hover: hover) {
+    .hasSubmenu:hover {
+        background: var(--surface);
+        color: var(--text-strong);
+    }
+}
+
+.menuItem.menuItemDisabled,
+.menuItem.menuItemDisabled:hover {
+    color: var(--text-faint);
+    background: none;
+}
+
+.menuSeparator {
+    background: var(--border);
+    margin: 6px 4px;
+}
+
+.checkMark {
+    width: 16px;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.shortcutHint {
+    padding-left: 24px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.submenuArrow {
+    color: var(--text-muted);
+}
+
+.menuSubhead {
+    padding: 8px 10px 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ---- Toolbar ---- */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 0 8px;
+    overflow: hidden;
+    box-sizing: border-box;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+}
+
+.toolbarButton {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+
+.toolbarButton svg {
+    display: block;
+}
+
+.toolbarButton:hover,
+.toolbarButton.hover {
+    background: var(--surface);
+    color: var(--text-strong);
+}
+
+.toolbarButton.active {
+    background: var(--primary-tint);
+    color: var(--primary);
+}
+
+.toolbarButton:active {
+    transform: translateY(1px);
+}
+
+.toolbarSep {
+    flex: none;
+    width: 1px;
+    height: 20px;
+    margin: 0 6px;
+    background: var(--border);
+}
+
+.toolbarMode {
+    margin-left: auto;
+    padding: 0 8px 0 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* variant picker opened from a toolbar button */
+.palette-container {
+    position: absolute;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.paletteItem {
+    display: flex;
+    padding: 4px;
+    border-radius: var(--r-md);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.paletteItem:hover {
+    background: var(--surface);
+    color: var(--text-strong);
+}
+
+/* ---- Side panel ---- */
+
+.verticalPanel {
+    background: var(--card);
+    border-left: 1px solid var(--border);
+    padding: 12px 0 16px;
+    color: var(--text);
+}
+
+.verticalPanel > * {
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+.verticalPanel > .sliderCanvas {
+    margin-top: 2px;
+}
+
+.sideButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.sideButtons .topButton {
+    flex: 1 1 0;
+    margin: 0;
+}
+
+.sideLabel {
+    margin-top: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.sideLabel.disabled {
+    color: var(--text-faint);
+}
+
+.sideTitle {
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.verticalPanel iframe {
+    width: auto !important;
+    max-width: calc(100% - 24px);
+    margin-top: 12px;
+    border-radius: var(--r-md);
+    color-scheme: normal;
+}
+
+/* ---- Buttons ---- */
+
+.topButton,
+.topButton-red {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    margin: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out),
+                color 120ms var(--ease-out);
+}
+
+.topButton:hover {
+    background: var(--surface);
+}
+
+.topButton:active {
+    transform: translateY(1px);
+}
+
+.topButton-red {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-fg);
+}
+
+/* Run/Stop shows the state the simulation is in */
+.runStop.isRunning {
+    background: var(--success-tint);
+    border-color: transparent;
+    color: var(--success);
+}
+
+.runStop.isStopped {
+    background: var(--error-tint);
+    border-color: transparent;
+    color: var(--error);
+}
+
+.runDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+}
+
+.runStop.isRunning .runDot {
+    animation: maestroPulse 1.6s var(--ease-out) infinite;
+}
+
+@keyframes maestroPulse {
+    0%   { box-shadow: 0 0 0 0 currentColor; }
+    70%  { box-shadow: 0 0 0 5px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.expand-but {
+    border-radius: var(--r-sm);
+    background: var(--text-muted);
+    color: var(--card);
+}
+
+/* ---- Dialogs ---- */
+
+dialog.circuitDialog {
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow-xl);
+    padding: 20px 24px;
+    max-width: min(560px, calc(100vw - 32px));
+}
+
+dialog.circuitDialog[open] {
+    animation: maestroDialogIn 180ms var(--ease-out);
+}
+
+@keyframes maestroDialogIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+dialog.circuitDialog::backdrop {
+    background: var(--backdrop);
+}
+
+.circuitDialog > h1,
+.circuitDialog > h2,
+.circuitDialog > h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.circuitDialog input[type="text"],
+.circuitDialog input[type="number"],
+.circuitDialog input:not([type]),
+.circuitDialog select,
+.circuitDialog textarea {
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font-size: 13px;
+    transition: border-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out);
+}
+
+.circuitDialog textarea {
+    font-family: ui-monospace, 'Cousine', Menlo, Consolas, monospace;
+}
+
+.circuitDialog input:focus,
+.circuitDialog select:focus,
+.circuitDialog textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.circuitDialog input[type="checkbox"],
+.circuitDialog input[type="radio"] {
+    accent-color: var(--primary);
+}
+
+.circuitDialog button {
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease-out);
+}
+
+.circuitDialog button:hover {
+    background: var(--surface);
+}
+
+.circuitDialog button:disabled {
+    color: var(--text-faint);
+    cursor: default;
+}
+
+.chbut {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    border-radius: var(--r-sm);
+}
+
+.chbut.chsel {
+    outline-color: var(--primary);
+}
+
+/* ---- Popups ---- */
+
+.scrollValuePopup {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 8px 12px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.scrollValuePopup-label.selected {
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+}
+
+.scrollValuePopup-label.off1 { color: var(--text-muted); }
+.scrollValuePopup-label.off2 { color: var(--text-faint); }
+
+.command-palette {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+.command-palette-input {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-strong);
+    font-size: 14px;
+}
+
+.command-palette-input::placeholder {
+    color: var(--text-muted);
+}
+
+.command-palette-list {
+    padding: 6px;
+}
+
+.command-palette-section-label {
+    padding: 8px 10px 4px;
+    color: var(--text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12px;
+}
+
+.command-palette-item {
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    color: var(--text);
+}
+
+.command-palette-item-selected {
+    background: var(--primary-tint);
+    color: var(--text-strong);
+}
+
+.command-palette-item-selected .command-palette-item-hint,
+.command-palette-item-hint {
+    color: var(--text-muted);
+}
+
+.toast {
+    background: var(--text-strong);
+    color: var(--bg);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+    font-weight: 500;
+}
+
+/* ---- Narrow screens ---- */
+
+@media only screen and (max-width: 600px) {
+    .triggerLabel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-right: 0;
+        color: var(--text-muted);
+    }
+
+    .toptriggerlabel {
+        color: var(--text);
+    }
+
+    .gwt-MenuBar-horizontal > table {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+    }
+
+    .menuDropdown .menuDropdown {
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    .verticalPanel {
+        background: var(--card);
+    }
+
+    /* the side panel is wider than upstream's 128px (see UIManager VERTICALPANELWIDTH) */
+    .trigger:checked + .triggerLabel {
+        right: 176px;
+    }
+
+    .trigger:checked ~ .verticalPanel {
+        width: 176px !important;
+    }
+}

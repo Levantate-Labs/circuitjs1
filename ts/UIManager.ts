@@ -40,6 +40,7 @@ import { SubcircuitBar } from "./SubcircuitBar";
 import { MyCommand } from "./MyCommand";
 import { parseIntStrict, parseFloatStrict } from "./NumberParse";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
+import { Theme } from "./levantate/theme";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -55,11 +56,16 @@ const KEY_A = 65, KEY_C = 67, KEY_D = 68, KEY_N = 78;
 const KEY_O = 79, KEY_P = 80, KEY_S = 83, KEY_V = 86;
 const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 
+// Modified by Levantate Labs, 2026-10-26: Maestro theme (palette, fonts, sliders,
+// side panel, run/stop button), batched drawing. See CHANGES.md.
+
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
-    private static readonly HMARGIN    = 2;
-    private static readonly SCROLLHEIGHT = 14;
-    private static readonly BARMARGIN  = 3;
+    private static readonly HMARGIN    = 0;
+    private static readonly SCROLLHEIGHT = 22;
+    private static readonly BARMARGIN  = 6;
+    // horizontal inset of the slider inside the side panel (matches .verticalPanel padding)
+    static readonly INSET = 12;
 
     element: HTMLCanvasElement;
     private g: CanvasRenderingContext2D;
@@ -72,25 +78,32 @@ export class Scrollbar {
     private command: (() => void) | null = null;
     attachedElm: any = null;
     private vpw: number;
+    // live sliders, redrawn when the theme changes
+    static readonly all: Set<Scrollbar> = new Set();
 
     constructor(orientation: number, value: number, visible: number, min: number, max: number,
                 cmd?: () => void, elm?: any) {
-        this.vpw = UIManager.VERTICALPANELWIDTH;
+        this.vpw = Math.max(UIManager.VERTICALPANELWIDTH - 2 * Scrollbar.INSET, 40);
         this.min = min;
         this.max = max - 1;
         this.val = value;
         if (cmd) this.command = cmd;
         if (elm)  this.attachedElm = elm;
 
+        // draw at device resolution so the track and thumb stay crisp
+        const dpr = UIManager.devicePixelRatio();
         const can = document.createElement('canvas');
-        can.width  = this.vpw;
-        can.height = Scrollbar.SCROLLHEIGHT;
+        can.width  = Math.round(this.vpw * dpr);
+        can.height = Math.round(Scrollbar.SCROLLHEIGHT * dpr);
         can.style.width   = this.vpw + 'px';
         can.style.height  = Scrollbar.SCROLLHEIGHT + 'px';
         can.style.display = 'block';
-        can.style.cursor  = 'default';
+        can.style.cursor  = 'pointer';
+        can.className = 'sliderCanvas';
         this.element = can;
         this.g = can.getContext('2d')!;
+        this.g.scale(dpr, dpr);
+        Scrollbar.all.add(this);
 
         can.addEventListener('mousedown', (e) => {
             e.preventDefault();
@@ -201,49 +214,54 @@ export class Scrollbar {
         const hm  = Scrollbar.HMARGIN;
         const bm  = Scrollbar.BARMARGIN;
 
-        g.fillStyle = '#ffffff';
-        g.fillRect(0, 0, vpw, sh);
+        const ui = Theme.chrome;
+        const mid = sh / 2;
+        g.clearRect(0, 0, vpw, sh);
+        g.lineCap = 'round';
+        g.lineJoin = 'round';
 
-        g.strokeStyle = this.enabled ? '#000000' : 'lightgrey';
-        g.lineWidth = 1.0;
-
-        // left arrow
+        // step arrows at both ends (clicking them nudges the value)
+        g.strokeStyle = this.enabled ? ui.textMuted : ui.border;
+        g.lineWidth = 1.5;
         g.beginPath();
-        g.moveTo(hm + sh - 3, 0);
-        g.lineTo(hm, sh / 2);
-        g.lineTo(hm + sh - 3, sh);
-        // right arrow
-        g.moveTo(vpw - hm - sh + 3, 0);
-        g.lineTo(vpw - hm, sh / 2);
-        g.lineTo(vpw - hm - sh + 3, sh);
+        g.moveTo(hm + sh / 2 + 1, mid - 4);
+        g.lineTo(hm + sh / 2 - 3, mid);
+        g.lineTo(hm + sh / 2 + 1, mid + 4);
+        g.moveTo(vpw - hm - sh / 2 - 1, mid - 4);
+        g.lineTo(vpw - hm - sh / 2 + 3, mid);
+        g.lineTo(vpw - hm - sh / 2 - 1, mid + 4);
+        g.stroke();
+
+        const x0 = hm + sh + bm;
+        const x1 = vpw - hm - sh - bm;
+
+        // track
+        g.strokeStyle = ui.track;
+        g.lineWidth = 4;
+        g.beginPath();
+        g.moveTo(x0, mid);
+        g.lineTo(x1, mid);
         g.stroke();
 
         if (this.enabled) {
-            // grey track
-            g.strokeStyle = 'grey';
-            g.lineWidth = 5.0;
-            g.beginPath();
-            g.moveTo(hm + sh + bm, sh / 2);
-            g.lineTo(vpw - hm - sh - bm, sh / 2);
-            g.stroke();
+            const p = x0 + (x1 - x0) * (this.val - this.min) / (this.max - this.min);
 
-            const p = hm + sh + bm +
-                (vpw - 2 * (hm + sh + bm)) * (this.val - this.min) / (this.max - this.min);
-
-            // red (or highlight) filled portion
+            // filled portion: brand accent, or the selection colour while its element is hovered
             g.strokeStyle = (this.attachedElm?.needsHighlight())
-                ? (CircuitElm.selectColor?.getHexValue() ?? 'red') : 'red';
+                ? (CircuitElm.selectColor?.getHexValue() ?? ui.accent) : ui.accent;
             g.beginPath();
-            g.moveTo(hm + sh + bm, sh / 2);
-            g.lineTo(p, sh / 2);
+            g.moveTo(x0, mid);
+            g.lineTo(p, mid);
             g.stroke();
 
-            // handle: white fill with black border
-            g.strokeStyle = '#000000';
-            g.lineWidth = 1.0;
-            g.fillStyle = '#ffffff';
-            g.fillRect(p - 2, 2, 5, sh - 4);
-            g.strokeRect(p - 2, 2, 5, sh - 4);
+            // thumb
+            g.beginPath();
+            g.arc(p, mid, 7, 0, 2 * Math.PI);
+            g.fillStyle = ui.thumb;
+            g.fill();
+            g.lineWidth = 1.5;
+            g.strokeStyle = this.dragging ? ui.accent : ui.borderStrong;
+            g.stroke();
         }
     }
 
@@ -538,7 +556,7 @@ export class UIManager {
             running       = qp.getBooleanValue("running", true);
             hideSidebar   = qp.getBooleanValue("hideSidebar", false);
             this.hideMenu = qp.getBooleanValue("hideMenu", false);
-            printable     = qp.getBooleanValue("whiteBackground", this.getOptionFromStorage("whiteBackground", false));
+            printable     = qp.getBooleanValue("whiteBackground", this.getOptionFromStorage("whiteBackground", true));
             convention    = qp.getBooleanValue("conventionalCurrent",
                                this.getOptionFromStorage("conventionalCurrent", true));
             noEditing     = !qp.getBooleanValue("editable", true);
@@ -580,14 +598,15 @@ export class UIManager {
 
         const width = window.innerWidth;
         UIManager.VERTICALPANELWIDTH = Math.floor(width / 5);
-        if (UIManager.VERTICALPANELWIDTH > 166) UIManager.VERTICALPANELWIDTH = 166;
-        if (UIManager.VERTICALPANELWIDTH < 128) UIManager.VERTICALPANELWIDTH = 128;
+        // wider than upstream (128-166) to fit the Maestro side panel's padding and buttons
+        if (UIManager.VERTICALPANELWIDTH > 216) UIManager.VERTICALPANELWIDTH = 216;
+        if (UIManager.VERTICALPANELWIDTH < 152) UIManager.VERTICALPANELWIDTH = 152;
 
         this.verticalPanel = document.createElement('div');
         this.verticalPanel.className = 'verticalPanel';
         this.verticalPanel.id = 'painel';
         this.verticalPanel.style.cssText =
-            `position:absolute;top:${UIManager.MENUBARHEIGHT}px;right:0;bottom:0;width:${UIManager.VERTICALPANELWIDTH}px;overflow-x:hidden;overflow-y:auto;`;
+            `position:absolute;top:${UIManager.MENUBARHEIGHT}px;right:0;bottom:0;width:${UIManager.VERTICALPANELWIDTH}px;overflow-x:hidden;overflow-y:auto;box-sizing:border-box;`;
 
         // mobile hamburger-style checkbox toggles for sidebar and top panel
         const sidePanelCheckbox = document.createElement('input');
@@ -606,10 +625,9 @@ export class UIManager {
         topPanelCheckboxLabel.className = 'toptriggerlabel';
         topPanelCheckboxLabel.setAttribute('for', 'toptrigger');
 
-        // make buttons side by side if there's room
-        this.buttonPanel = (UIManager.VERTICALPANELWIDTH === 166)
-            ? Object.assign(document.createElement('div'), { style: { display: 'flex', flexDirection: 'row' } })
-            : Object.assign(document.createElement('div'), { style: { display: 'flex', flexDirection: 'column' } });
+        // Reset and Run/Stop side by side (laid out by .sideButtons in levantate/maestro.css)
+        this.buttonPanel = document.createElement('div');
+        this.buttonPanel.className = 'sideButtons';
 
         this.menus.pasteItem.setEnabled(false);
 
@@ -737,8 +755,7 @@ export class UIManager {
         this.buttonPanel.appendChild(this.resetButton);
 
         this.runStopButton = document.createElement('button');
-        this.runStopButton.innerHTML = '<strong>RUN</strong>&nbsp;/&nbsp;Stop';
-        this.runStopButton.className = 'topButton';
+        UIManager.setRunStopLabel(this.runStopButton, true);
         this.runStopButton.addEventListener('click', () => this.setSimRunning(!this.simIsRunning()));
         this.buttonPanel.appendChild(this.runStopButton);
 
@@ -764,7 +781,7 @@ export class UIManager {
         let l: HTMLElement;
         l = document.createElement('div');
         l.textContent = Locale.LS("Simulation Speed");
-        l.className = 'topSpace';
+        l.className = 'topSpace sideLabel';
         this.verticalPanel.appendChild(l);
 
         // was max of 140
@@ -773,14 +790,14 @@ export class UIManager {
 
         l = document.createElement('div');
         l.textContent = Locale.LS("Current Speed");
-        l.className = 'topSpace';
+        l.className = 'topSpace sideLabel';
         this.verticalPanel.appendChild(l);
         this.currentBar = new Scrollbar(Scrollbar.HORIZONTAL, 50, 1, 1, 100);
         this.verticalPanel.appendChild(this.currentBar.element);
 
         this.powerLabel = document.createElement('div');
         this.powerLabel.textContent = Locale.LS("Power Brightness");
-        this.powerLabel.className = 'topSpace';
+        this.powerLabel.className = 'topSpace sideLabel';
         this.verticalPanel.appendChild(this.powerLabel);
         this.powerBar = new Scrollbar(Scrollbar.HORIZONTAL, 50, 1, 1, 100);
         this.verticalPanel.appendChild(this.powerBar.element);
@@ -805,10 +822,11 @@ export class UIManager {
 
         l = document.createElement('div');
         l.textContent = Locale.LS("Current Circuit:");
-        l.className = 'topSpace';
+        l.className = 'topSpace sideLabel';
         this.verticalPanel.appendChild(l);
 
         this.titleLabel = document.createElement('div');
+        this.titleLabel.className = 'sideTitle';
         this.titleLabel.textContent = "Label";
         this.verticalPanel.appendChild(this.titleLabel);
 
@@ -985,13 +1003,11 @@ export class UIManager {
             if (this.app.stopMessage != null)
                 return;
             this.app.simRunning = true;
-            this.runStopButton.innerHTML = '<strong>RUN</strong>&nbsp;/&nbsp;Stop';
-            this.runStopButton.className = 'topButton';
+            UIManager.setRunStopLabel(this.runStopButton, true);
             this.app.timer.scheduleRepeating(this.app.FASTTIMER);
         } else {
             this.app.simRunning = false;
-            this.runStopButton.innerHTML = 'Run&nbsp;/&nbsp;<strong>STOP</strong>';
-            this.runStopButton.className = 'topButton-red';
+            UIManager.setRunStopLabel(this.runStopButton, false);
             this.app.timer.cancel();
             this.repaint();
         }
@@ -999,6 +1015,13 @@ export class UIManager {
 
     simIsRunning(): boolean {
         return this.app.simRunning;
+    }
+
+    // Shows the current state (dot + "Running"/"Stopped"); clicking toggles it.
+    static setRunStopLabel(b: HTMLButtonElement, running: boolean): void {
+        b.className = running ? 'topButton runStop isRunning' : 'topButton runStop isStopped';
+        b.innerHTML = '<span class="runDot"></span>' + (running ? Locale.LS("Running") : Locale.LS("Stopped"));
+        b.title = running ? Locale.LS("Stop the simulation") : Locale.LS("Run the simulation");
     }
 
     // find the element in "list" to highlight for target: either target itself, or,
@@ -1050,17 +1073,19 @@ export class UIManager {
 
         const g = new Graphics(this.cvcontext);
 
-        if (this.menus.printableCheckItem.getState()) {
-            CircuitElm.whiteColor = Color.black;
-            CircuitElm.lightGrayColor = Color.black;
-            g.setColor(Color.white);
-            this.cv.style.backgroundColor = '#fff';
-        } else {
-            CircuitElm.whiteColor = Color.white;
-            CircuitElm.lightGrayColor = Color.lightGray;
-            g.setColor(Color.black);
-            this.cv.style.backgroundColor = '#000';
+        const light = this.menus.printableCheckItem.getState();
+        if (Theme.applied !== light) {
+            Theme.apply(light);
+            for (const sb of Scrollbar.all)
+                sb.draw();
+            // re-pick trace colours from the new palette
+            for (let i = 0; i < this.scopeManager.scopeCount; i++)
+                this.scopeManager.scopes[i].calcVisiblePlots();
+            for (const s of this.app.scopeElmArr ?? [])
+                s.calcVisiblePlots?.();
         }
+        g.setColor(Theme.palette.background);
+        this.cv.style.backgroundColor = Theme.palette.background;
 
         g.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
@@ -1277,7 +1302,7 @@ export class UIManager {
         const g = new Graphics(this.cvcontext);
         const x = UIManager.max(this.canvasWidth - CirSim.infoWidth, 0) + 5;
         g.setFont(CircuitElm.unitsFont);
-        g.setColor(Color.yellow);
+        g.setColor(Theme.palette.negative);
         g.drawString("exception, see console!", x, this.canvasHeight - 10);
     }
 
@@ -1293,7 +1318,7 @@ export class UIManager {
         }
         if (this.app.stopMessage != null && this.app.circuitArea.height > this.canvasHeight - 30)
             h = 30;
-        g.setColor(this.menus.printableCheckItem.getState() ? "#eee" : "#111");
+        g.setColor(Theme.palette.bottomArea);
         g.fillRect(leftX, this.app.circuitArea.height - h,
                    this.app.circuitArea.width, this.canvasHeight - this.app.circuitArea.height + h);
         g.setFont(CircuitElm.unitsFont);
@@ -1318,7 +1343,7 @@ export class UIManager {
             g.drawLine(0, this.app.circuitArea.height - 2, this.app.circuitArea.width, this.app.circuitArea.height - 2);
             g.setLineWidth(1.0);
         }
-        g.setColor(CircuitElm.whiteColor);
+        g.setColor(Theme.palette.infoText);
 
         if (this.app.stopMessage != null) {
             g.drawString(this.app.stopMessage, 10, this.canvasHeight - 10);
@@ -1389,9 +1414,7 @@ export class UIManager {
     }
 
     getBackgroundColor(): Color {
-        if (this.menus.printableCheckItem.getState())
-            return Color.white;
-        return Color.black;
+        return new Color(Theme.palette.background);
     }
 
     // ---- UI Controls ----
@@ -2032,32 +2055,25 @@ export class UIManager {
                 currentColor = localStorage.getItem("currentColor");
         } catch (e) {}
 
+        // the Maestro theme supplies every colour unless one was set explicitly
+        const explicit: [string | null, "positive" | "negative" | "neutral" | "select" | "current"][] = [
+            [positiveColor, "positive"], [negativeColor, "negative"], [neutralColor, "neutral"],
+            [selectColor, "select"], [currentColor, "current"],
+        ];
+        for (const [value, name] of explicit)
+            if (value != null)
+                Theme.markOverridden(name);
+        Theme.apply(this.menus.printableCheckItem.getState(), true);
         if (positiveColor != null)
             CircuitElm.positiveColor = new Color(decodeURIComponent(positiveColor));
-        else if (this.getOptionFromStorage("alternativeColor", false))
-            CircuitElm.positiveColor = Color.blue;
-        else
-            CircuitElm.positiveColor = Color.green;
-
         if (negativeColor != null)
             CircuitElm.negativeColor = new Color(decodeURIComponent(negativeColor));
-        else
-            CircuitElm.negativeColor = Color.red;
-
         if (neutralColor != null)
             CircuitElm.neutralColor = new Color(decodeURIComponent(neutralColor));
-        else
-            CircuitElm.neutralColor = Color.gray;
-
         if (selectColor != null)
             CircuitElm.selectColor = new Color(decodeURIComponent(selectColor));
-        else
-            CircuitElm.selectColor = Color.cyan;
-
         if (currentColor != null)
             CircuitElm.currentColor = new Color(decodeURIComponent(currentColor));
-        else
-            CircuitElm.currentColor = this.menus.conventionCheckItem.getState() ? Color.yellow : Color.cyan;
 
         CircuitElm.setColorScale();
     }

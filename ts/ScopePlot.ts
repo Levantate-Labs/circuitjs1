@@ -16,7 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
 
+import { Theme } from "./levantate/theme";
 import { CircuitElm } from "./CircuitElm";
 import { SimulationManager } from "./SimulationManager";
 import { CirSim } from "./CirSim";
@@ -185,10 +187,8 @@ export class ScopePlot {
         return "";
     }
 
-    static readonly colors: string[] = [
-        "#FF0000", "#FF8000", "#FF00FF", "#7F00FF",
-        "#0000FF", "#0080FF", "#FFFF00", "#00FFFF",
-    ];
+    // Modified by Levantate Labs, 2026-10-26: trace colours come from the Maestro theme
+    static get colors(): string[] { return Theme.palette.traceSeries; }
 
     assignColor(count: number): void {
         if (count > 0) {
@@ -197,13 +197,13 @@ export class ScopePlot {
         }
         switch (this.units) {
         case UNITS_V:
-            this.color = CircuitElm.positiveColor.getHexValue();
+            this.color = Theme.palette.traceVoltage;
             break;
         case UNITS_A:
-            this.color = (CirSim.theApp.isPrintable()) ? "#A0A000" : "#FFFF00";
+            this.color = Theme.palette.traceCurrent;
             break;
         default:
-            this.color = (CirSim.theApp.isPrintable()) ? "#000000" : "#FFFFFF";
+            this.color = Theme.palette.traceOther;
             break;
         }
     }

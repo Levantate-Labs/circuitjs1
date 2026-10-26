@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
 
 import { CircuitElm } from "./CircuitElm";
 import { CirSim } from "./CirSim";
@@ -36,6 +37,7 @@ import type { ScopePropertiesDialog } from "./ScopePropertiesDialog";
 import { ScrollValuePopup } from "./ScrollValuePopup";
 import { Locale } from "./Locale";
 import { HookRegistry } from "./HookRegistry";
+import { Theme } from "./levantate/theme";
 import {
     VAL_POWER, VAL_POWER_OLD, VAL_VOLTAGE, VAL_CURRENT,
     VAL_IB, VAL_IC, VAL_IE, VAL_VBE, VAL_VBC, VAL_VCE,
@@ -576,7 +578,7 @@ export class Scope {
             if (this.cursorInSettingsWheel())
                 g.setColor(CircuitElm.selectColor);
             else
-                g.setColor(Color.dark_gray);
+                g.setColor(Theme.palette.inkMuted);
             g.context.translate(this.rect.x + 18, this.rect.y + this.rect.height - 18);
             CircuitElm.drawThickCircle(g, 0, 0, inR);
             CircuitElm.drawThickLine(g, -outR, 0, -inR, 0);
@@ -589,6 +591,21 @@ export class Scope {
             CircuitElm.drawThickLine(g, outR45, outR45, inR45, inR45);
             g.context.restore();
         }
+    }
+
+    // Levantate Labs, 2026-10-26: rounded card behind the scope (Maestro theme)
+    drawScopeCard(g: Graphics): void {
+        const pal = Theme.palette;
+        const ctx = g.context;
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(this.rect.x + 0.5, this.rect.y + 0.5, this.rect.width - 1, this.rect.height - 1, 8);
+        ctx.fillStyle = pal.scopeBg;
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = pal.scopeBorder;
+        ctx.stroke();
+        ctx.restore();
     }
 
     showSettingsWheel(): boolean {
@@ -650,6 +667,8 @@ export class Scope {
             return;
         }
 
+        if (!forExport)
+            this.drawScopeCard(g);
         if (!forExport)
             this.drawSettingsWheel(g);
         g.context.save();
@@ -844,29 +863,31 @@ export class Scope {
         return gridMid;
     }
 
+    // Modified by Levantate Labs, 2026-10-26: Maestro colours; minor and major lines
+    // are collected into one path each instead of one stroke() per line.
     drawHVGridLines(g: Graphics, plot: ScopePlot, gridMid: number, allPlotsSameUnits: boolean, allSelected: boolean): void {
         const maxy = Math.trunc((this.rect.height - 1) / 2);
-        let minorDiv = "#404040";
-        let majorDiv = "#A0A0A0";
-        if (this.app.isPrintable()) {
-            minorDiv = "#D0D0D0";
-            majorDiv = "#808080";
-            this.curColor = "#A0A000";
-        }
-        if (allSelected)
-            majorDiv = CircuitElm.selectColor.getHexValue();
+        const pal = Theme.palette;
+        const majorDiv = allSelected ? CircuitElm.selectColor.getHexValue() : pal.gridMajor;
         const highlightCenter = !this.isManualScale();
+        const ctx = g.context;
+        const minor = new Path2D();
+        const major = new Path2D();
+        // lines sit on pixel centres (+0.5) so 1px lines render crisp instead of as 2px blurs
+        const line = (path: Path2D, x0: number, y0: number, x1: number, y1: number) => {
+            path.moveTo(x0, y0);
+            path.lineTo(x1, y1);
+        };
 
         // horizontal gridlines; only show non-center lines if units are unambiguous
         const showHGridLines = (this.gridStepY !== 0) && (this.isManualScale() || allPlotsSameUnits);
         for (let ll = -100; ll <= 100; ll++) {
             if (ll !== 0 && !showHGridLines)
                 continue;
-            const yl = maxy - (ll * this.gridStepY - gridMid) * plot.gridMult;
+            const yl = Math.round(maxy - (ll * this.gridStepY - gridMid) * plot.gridMult) + 0.5;
             if (yl < 0 || yl >= this.rect.height - 1)
                 continue;
-            g.setColor(ll === 0 && highlightCenter ? majorDiv : minorDiv);
-            g.drawLine(0, yl, this.rect.width - 1, yl);
+            line(ll === 0 && highlightCenter ? major : minor, 0, yl, this.rect.width - 1, yl);
         }
 
         // vertical (time) gridlines
@@ -881,9 +902,17 @@ export class Scope {
                 break;
             if (gx >= this.rect.width || tl < 0)
                 continue;
-            g.setColor(((tl + this.gridStepX / 4) % (this.gridStepX * 10)) < this.gridStepX ? majorDiv : minorDiv);
-            g.drawLine(gx, 0, gx, this.rect.height - 1);
+            const isMajor = ((tl + this.gridStepX / 4) % (this.gridStepX * 10)) < this.gridStepX;
+            line(isMajor ? major : minor, gx + 0.5, 0, gx + 0.5, this.rect.height - 1);
         }
+
+        ctx.save();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = pal.gridMinor;
+        ctx.stroke(minor);
+        ctx.strokeStyle = majorDiv;
+        ctx.stroke(major);
+        ctx.restore();
     }
 
     drawPlot(g: Graphics, plot: ScopePlot, allPlotsSameUnits: boolean, selected: boolean, allSelected: boolean): void {
@@ -891,7 +920,7 @@ export class Scope {
             return;
         const maxy = Math.trunc((this.rect.height - 1) / 2);
 
-        let color = (this.somethingSelected) ? "#A0A0A0" : plot.color;
+        let color = (this.somethingSelected) ? Theme.palette.gridMajor : plot.color;
         if (allSelected || (this.app.scopeManager.scopeSelected === -1 && this.getSingleElm() === null && plot.elm.isMouseElm() && !this.exporting))
             color = CircuitElm.selectColor.getHexValue();
         else if (selected)
@@ -920,36 +949,72 @@ export class Scope {
 
         // In triggered mode, only draw up to the current write pointer.
         // Data beyond that is stale (old circular buffer contents).
+        // Modified by Levantate Labs, 2026-10-26: the trace is built as one path and
+        // stroked once (upstream stroked every column separately), and consecutive
+        // columns are joined so steep edges have no gaps.
         const drawWidth = this.validDataCount(plot, ipa, this.rect.width);
-        let ox = -1, oy = -1;
+        const ctx = g.context;
+        ctx.save();
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        let penDown = false;   // is the path continuing from the previous column?
+        let lastY = 0;         // y where the path currently ends
+        let runX = -1;         // start of a pending flat run at lastY (drawn lazily)
         let i;
         for (i = 0; i !== drawWidth; i++) {
             const ip = (i + ipa) & (this.scopePointCount - 1);
             const minvy = Math.round(plot.gridMult * (minV[ip] + plot.plotOffset));
             const maxvy = Math.round(plot.gridMult * (maxV[ip] + plot.plotOffset));
-            if (minvy <= maxy) {
-                if (minvy < curMinRangeLo || maxvy > minRangeHi) {
-                    // value outside min range; no need to rescale later
-                    this.reduceRange[plot.units] = false;
-                    curMinRangeLo = -1000;
-                    minRangeHi = 1000;
-                }
-                if (ox !== -1) {
-                    if (minvy === oy && maxvy === oy)
-                        continue;
-                    g.drawLine(ox, maxy - oy, i, maxy - oy);
-                    ox = oy = -1;
-                }
-                if (minvy === maxvy) {
-                    ox = i;
-                    oy = minvy;
-                    continue;
-                }
-                g.drawLine(i, maxy - minvy, i, maxy - maxvy);
+            if (minvy > maxy) {
+                // off the top of the scope: break the trace here
+                if (runX >= 0)
+                    ctx.lineTo(i - 1, lastY);
+                penDown = false;
+                runX = -1;
+                continue;
+            }
+            if (minvy < curMinRangeLo || maxvy > minRangeHi) {
+                // value outside min range; no need to rescale later
+                this.reduceRange[plot.units] = false;
+                curMinRangeLo = -1000;
+                minRangeHi = 1000;
+            }
+            const yTop = maxy - maxvy;
+            const yBot = maxy - minvy;
+            if (penDown && yTop === lastY && yBot === lastY) {
+                // still flat: extend the pending run without adding points
+                if (runX < 0)
+                    runX = i - 1;
+                continue;
+            }
+            if (runX >= 0) {
+                ctx.lineTo(i - 1, lastY);
+                runX = -1;
+            }
+            // enter this column at the end of its range nearest the previous point
+            const enter = penDown ? Math.min(Math.max(lastY, yTop), yBot) : yBot;
+            if (penDown)
+                ctx.lineTo(i, enter);
+            else
+                ctx.moveTo(i, enter);
+            penDown = true;
+            if (yTop === yBot) {
+                lastY = enter;
+            } else {
+                const far = (enter - yTop < yBot - enter) ? yBot : yTop;
+                const near = far === yBot ? yTop : yBot;
+                ctx.lineTo(i, near);
+                ctx.lineTo(i, far);
+                lastY = far;
             }
         }
-        if (ox !== -1)
-            g.drawLine(ox, maxy - oy, i - 1, maxy - oy);
+        if (runX >= 0)
+            ctx.lineTo(i - 1, lastY);
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.restore();
     }
 
     static clearCursorInfo(): void {
@@ -1108,17 +1173,28 @@ export class Scope {
             }
         }
 
-        g.setColor(CircuitElm.whiteColor);
-        g.drawLine(x, this.rect.y, x, this.rect.y + this.rect.height);
+        const pal = Theme.palette;
+        g.setColor(pal.inkMuted);
+        g.drawLine(x + 0.5, this.rect.y, x + 0.5, this.rect.y + this.rect.height);
         if (drawY)
             g.drawLine(this.rect.x, this.app.mouse.mouseCursorY, this.rect.x + this.rect.width, this.app.mouse.mouseCursorY);
-        g.setColor(this.app.isPrintable() ? Color.white : Color.black);
         let bx = x;
-        if (bx < szw / 2)
-            bx = szw / 2;
-        g.fillRect(bx - szw / 2, this.rect.y - szh, szw, szh);
+        if (bx < szw / 2 + 6)
+            bx = szw / 2 + 6;
+        if (ct > 0) {
+            // readout chip above the cursor line
+            g.context.save();
+            g.context.beginPath();
+            g.context.roundRect(bx - szw / 2 - 6, this.rect.y - szh - 4, szw + 12, szh + 2, 6);
+            g.context.fillStyle = pal.scopeBg;
+            g.context.fill();
+            g.context.lineWidth = 1;
+            g.context.strokeStyle = pal.scopeBorder;
+            g.context.stroke();
+            g.context.restore();
+        }
         if (info !== null) {
-            g.setColor(CircuitElm.whiteColor);
+            g.setColor(pal.infoText);
             for (i = 0; i !== ct; i++) {
                 const w = g.context.measureText(info[i]).width;
                 g.drawString(info[i], bx - w / 2, this.rect.y - 2 - (ct - 1 - i) * 15);
@@ -1269,10 +1345,7 @@ export class Scope {
             // match the on-screen background: docked scopes (position >= 0) sit in the
             // bottom area, drawn #eee/#111 in UIManager.drawBottomArea(); embedded scope
             // elements (position == -1) are drawn on the main canvas background
-            if (this.position >= 0)
-                g.setColor(this.app.isPrintable() ? "#eee" : "#111");
-            else
-                g.setColor(this.app.isPrintable() ? Color.white : Color.black);
+            g.setColor(Theme.palette.scopeBg);
             g.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         }
         // draw all plots in their own colors (as if the mouse weren't over the scope),

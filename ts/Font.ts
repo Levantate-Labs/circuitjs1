@@ -16,6 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: sans-serif maps to the Maestro font.
+
+import { CANVAS_FONT_FAMILY } from "./levantate/fonts";
 
 export class Font {
     static readonly BOLD = 1;
@@ -24,9 +27,9 @@ export class Font {
     size: number;
 
     constructor(name: string, style: number, size: number) {
-        if (name === "SansSerif")
-            name = "sans-serif";
-        const styleStr = (style & Font.BOLD) !== 0 ? "bold " : "normal ";
+        if (name === "SansSerif" || name === "sans-serif" || name === "normal")
+            name = CANVAS_FONT_FAMILY;
+        const styleStr = (style & Font.BOLD) !== 0 ? "600 " : "normal ";
         this.fontname = styleStr + size + "px " + name;
         this.size = size;
     }

@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
 
 import { CircuitElm } from "./CircuitElm";
 import { Graphics } from "./Graphics";
@@ -255,7 +256,19 @@ export class ScopeOverlays {
         return above.position === scope.position && above.getScopeLabelOrText(true) === t;
     }
 
+    // Modified by Levantate Labs, 2026-10-26: inset the overlay text from the
+    // scope card's edge (Maestro theme).
     draw(g: Graphics): void {
+        g.context.save();
+        g.context.translate(8, 6);
+        try {
+            this.drawOverlays(g);
+        } finally {
+            g.context.restore();
+        }
+    }
+
+    private drawOverlays(g: Graphics): void {
         g.setColor(CircuitElm.whiteColor);
         this.textY = 10;
         if (this.scope.visiblePlots.length === 0) {

@@ -16,7 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing. See CHANGES.md.
 
+import { Theme } from "./levantate/theme";
 import { Graphics } from "./Graphics";
 import { CircuitElm } from "./CircuitElm";
 import { Locale } from "./Locale";
@@ -56,10 +58,10 @@ export class ScopeFFT {
             const sWidth = Math.ceil(g.context.measureText(s).width);
             prevEnd = x + sWidth + 4;
             if (i > 0) {
-                g.setColor("#880000");
+                g.setColor(Theme.palette.fftDim);
                 g.drawLine(x, 0, x, this.scope.rect.height);
             }
-            g.setColor("#FF0000");
+            g.setColor(Theme.palette.fft);
             g.drawString(s, x + 2, this.scope.rect.height);
         }
     }
@@ -92,7 +94,7 @@ export class ScopeFFT {
         this.fftReal = real;
         this.fftImag = imag;
         let prevX = 0;
-        g.setColor("#FF0000");
+        g.setColor(Theme.palette.fft);
         if (!this.logSpectrum) {
             let prevHeight = 0;
             const y = (this.scope.rect.height - 1) - 12;
@@ -116,12 +118,12 @@ export class ScopeFFT {
                 const y = topMargin + Math.floor(-db * pixelsPerDb);
                 if (y < 0 || y >= this.scope.rect.height)
                     continue;
-                g.setColor("#880000");
+                g.setColor(Theme.palette.fftDim);
                 g.drawLine(0, y, this.scope.rect.width, y);
-                g.setColor("#FF0000");
+                g.setColor(Theme.palette.fft);
                 g.drawString(db + " dB", 2, y - 2);
             }
-            g.setColor("#FF0000");
+            g.setColor(Theme.palette.fft);
             for (let i = 0; i < this.scope.scopePointCount / 2; i++) {
                 const x = Math.floor(2 * i * this.scope.rect.width / this.scope.scopePointCount);
                 const magnitude = this.fft.magnitude(real[i], imag[i]);
