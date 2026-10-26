@@ -40,6 +40,8 @@ export interface CanvasPalette {
     gridMinor: string;
     gridMajor: string;
     canvasDot: string;     // dot grid on the circuit canvas
+    gradePin: string;      // grading point pins
+    gradePinText: string;
     traceVoltage: string;
     traceCurrent: string;
     traceOther: string;
@@ -64,6 +66,8 @@ export const MAESTRO_LIGHT: CanvasPalette = {
     gridMinor: "#efece6",
     gridMajor: "#d6cfc0",
     canvasDot: "#c9c1b1",
+    gradePin: "#f95c4b",
+    gradePinText: "#ffffff",
     traceVoltage: "#104e64",
     traceCurrent: "#f95c4b",
     traceOther: "#3d3d3d",
@@ -89,6 +93,8 @@ export const MAESTRO_DARK: CanvasPalette = {
     gridMinor: "#25221c",
     gridMajor: "#3d382e",
     canvasDot: "#3a352c",
+    gradePin: "#ff5a4a",
+    gradePinText: "#14130f",
     traceVoltage: "#4a93ad",
     traceCurrent: "#ff5a4a",
     traceOther: "#d4d0c8",

@@ -66,6 +66,29 @@ License, version 2 or (at your option) any later version.
 
 ## 2026-10-27
 
+### Grading points (roadmap slice L2)
+
+- New part **Grading Point** (`ts/levantate/grading/GradePointElm.ts`, Draw >
+  Outputs and Labels > Add Grading Point): a coral pin with a label marking
+  where a circuit is checked. It stores only an id, a label and a kind.
+  - `node`: one terminal on a wire, reads the node voltage.
+  - `waveform`: like `node`, and also records samples (bounded) for waveform
+    comparison.
+  - `branch` / `power`: no terminal, so they never change the circuit; the tip
+    points at a part (smallest part under the tip, wires ignored) and reads its
+    current / power. The part is re-found whenever the circuit is restamped.
+- Readings via `ts/levantate/grading/signalStats.ts`: value, average, RMS,
+  max, min, peak-to-peak, frequency and period since the last reset, so a
+  grader can settle, reset and measure over a window.
+- Saved as `<LvGradePoint k=… id=… lb=…/>` (legacy text code 4000); both are
+  distinct from upstream's codes. A `locked` flag (set later by exam mode) hides
+  the pin's edit fields.
+- Registered from `ts/levantate/registerElements.ts`, called from `CirSim.init()`
+  after upstream's generated `registerElements.ts`, so regenerating that file
+  can't drop it.
+- `levantate/theme.ts`: pin colours. Tests: `signalStats.test.ts`,
+  `GradePointElm.test.ts` (15 tests).
+
 ### Canvas visuals (roadmap slice L1)
 
 - New `ts/levantate/canvas/visuals.ts`, drawn from `UIManager.updateCircuit()`:

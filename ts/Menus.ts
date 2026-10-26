@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid; Add Grading Point. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -565,6 +565,7 @@ export class Menus {
             "Add Ammeter",                    "AmmeterElm",
             "Add Wattmeter",                  "WattmeterTrueElm",
             "Add Test Point",                 "TestPointElm",
+            "Add Grading Point",              "GradePointElm",
             "Add Decimal Display",            "DecimalDisplayElm",
             "Add Instruction Display",        "InstructionDisplayElm",
             "Add LED Array",                  "LEDArrayElm",

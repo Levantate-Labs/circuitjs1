@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26: product name in the browser tab. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -267,6 +267,9 @@ export class CirSim {
 
         const { registerElements } = await import('./registerElements');
         registerElements();
+        // Levantate Labs: fork-only parts (grading points)
+        const { registerLevantateElements } = await import('./levantate/registerElements');
+        registerLevantateElements();
 
         this.ui.init();
 
