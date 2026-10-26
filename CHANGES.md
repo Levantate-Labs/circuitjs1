@@ -140,6 +140,28 @@ License, version 2 or (at your option) any later version.
 - Hooks: `UIManager.ts` (canvas and circuit area sizes, bottom-area drawing),
   `MouseManager.ts` (no scope splitter while graphs are hidden), `Menus.ts`.
 
+### Help panel and first-run tour (roadmap slice L8, onboarding)
+
+- New `ts/levantate/help/`: a user guide for students.
+  - **Help panel** (`helpPanel.ts`, `content.ts`): a drawer on the right with
+    sections on getting started, building a circuit, finding parts, changing
+    values and units, running, measuring and Freeze, graphs, moving around,
+    layout and options, working in a test, error messages and how to fix them,
+    and keyboard shortcuts. A search box filters and opens matching sections.
+    Opened from the ? button at the end of the zoom pill, the ? key or F1.
+  - **Guided tour** (`tour.ts`): eight short steps that spotlight the dock, the
+    canvas, a part, Run/Stop, Freeze, the graphs, the zoom pill and the help
+    button, with Back / Next / Skip and arrow keys. Steps for things not on
+    screen are left out. It starts by itself once per device (local storage
+    key `lvTourDone`); the Help panel replays it. URL parameter `tour=0` turns
+    the automatic start off.
+  - Styles in `help.css`, loaded from `main.ts` after `maestro.css`.
+- Bridge: `init.tour` (default true) lets the host turn the tour off; it never
+  starts in read-only mode, and embedded pages start it after `init` so it
+  matches the exam's layout. `docs/bridge-protocol.md` updated.
+- Hooks: `UIManager.ts` (creates both), `CirSim.ts` (automatic start outside
+  an iframe). Tests: `help.test.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

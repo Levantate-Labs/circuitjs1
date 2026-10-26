@@ -1,0 +1,262 @@
+/*
+    Copyright (C) 2026 Levantate Labs
+
+    This file is part of the Levantate Labs fork of CircuitJS1, distributed under
+    the GNU General Public License, version 2 or (at your option) any later
+    version. See COPYING.txt.
+
+    Help panel (helpPanel.ts) and guided tour (tour.ts). Uses the tokens from
+    ../maestro.css.
+*/
+
+/* ---- Help button and drawer ---- */
+
+.zoomPill > .helpButton {
+    width: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.zoomPill > .helpButton.on { background: var(--surface); color: var(--text-strong); }
+
+.helpDrawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(380px, 100vw);
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    color: var(--text);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-xl);
+    font-size: 13.5px;
+    line-height: 1.55;
+    animation: helpIn 180ms var(--ease-out);
+}
+
+.helpDrawer[hidden] { display: none; }
+
+@keyframes helpIn {
+    from { transform: translateX(16px); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+}
+
+.helpHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 12px 6px 20px;
+}
+
+.helpHead h2 { margin: 0; font-size: 17px; font-weight: 700; color: var(--text-strong); }
+
+.helpClose {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.helpClose:hover { background: var(--surface); color: var(--text-strong); }
+
+.helpSearch { padding: 6px 20px 12px; border-bottom: 1px solid var(--border); }
+
+.helpSearch input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--text-strong);
+    font: inherit;
+}
+
+.helpSearch input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+    background: var(--card);
+}
+
+.helpBody { flex: 1; overflow-y: auto; padding: 14px 20px 20px; }
+
+.helpTourCard {
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--info-tint);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+}
+
+.helpTourCard:hover { border-color: var(--info); }
+.helpTourCard > span:last-child { display: flex; flex-direction: column; }
+.helpTourCard b { color: var(--text-strong); }
+.helpTourCard > span:last-child > span { font-size: 12.5px; color: var(--text-muted); }
+.helpTourIcon { display: inline-flex; color: var(--info); }
+
+.helpSection { border-bottom: 1px solid var(--border); }
+.helpSection[hidden] { display: none; }
+
+.helpSection > summary {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 11px 24px 11px 0;
+    list-style: none;
+    cursor: pointer;
+}
+
+.helpSection > summary::-webkit-details-marker { display: none; }
+
+.helpSection > summary::after {
+    content: "";
+    position: absolute;
+    right: 4px;
+    top: 17px;
+    width: 7px;
+    height: 7px;
+    border-right: 1.8px solid var(--text-muted);
+    border-bottom: 1.8px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform 150ms var(--ease-out);
+}
+
+.helpSection[open] > summary::after { top: 20px; transform: rotate(-135deg); }
+
+.helpTitle { font-weight: 700; color: var(--text-strong); }
+.helpSummary { font-size: 12.5px; color: var(--text-muted); }
+
+.helpText { padding: 0 0 14px; }
+.helpText p, .helpText ul, .helpText ol, .helpText dl { margin: 0 0 10px; }
+.helpText ul, .helpText ol { padding-left: 20px; }
+.helpText li { margin-bottom: 4px; }
+.helpText a { color: var(--info); font-weight: 600; }
+.helpText code { padding: 1px 5px; border-radius: 4px; background: var(--surface); font-size: 12.5px; }
+
+.helpDrawer kbd,
+.lvTourCard kbd {
+    display: inline-block;
+    min-width: 1.4em;
+    padding: 0 5px;
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: var(--card);
+    color: var(--text-strong);
+    font: 600 11.5px/1.6 ui-monospace, Menlo, Consolas, monospace;
+    text-align: center;
+}
+
+.helpTip {
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    font-size: 12.5px;
+}
+
+.helpTable,
+.helpKeys { width: 100%; margin-bottom: 10px; border-collapse: collapse; font-size: 12.5px; }
+.helpTable td { padding: 3px 6px 3px 0; }
+.helpKeys td { padding: 5px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.helpKeys td:first-child { padding-right: 12px; white-space: nowrap; }
+
+.helpDefs dt { margin-top: 8px; font-weight: 700; color: var(--text-strong); }
+.helpDefs dd { margin: 2px 0 0; }
+
+.helpSwatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; }
+.helpSwatch.pos { background: #104e64; }
+.helpSwatch.neg { background: #f95c4b; }
+.helpSwatch.zero { background: #8f8a7e; }
+
+.helpEmpty { color: var(--text-muted); }
+
+/* ---- Guided tour ---- */
+
+.lvTour {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+}
+
+.lvTour.centred { background: rgba(20, 19, 15, 0.45); }
+
+.lvTourSpot {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(20, 19, 15, 0.45), 0 0 0 2px var(--primary);
+    pointer-events: none;
+    transition: left 220ms var(--ease-out), top 220ms var(--ease-out),
+                width 220ms var(--ease-out), height 220ms var(--ease-out);
+}
+
+.lvTourCard {
+    position: fixed;
+    box-sizing: border-box;
+    width: min(340px, calc(100vw - 24px));
+    padding: 16px 18px 14px;
+    border-radius: var(--r-xl);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow-xl);
+    font-size: 13.5px;
+    line-height: 1.55;
+    outline: none;
+    animation: maestroDialogIn 180ms var(--ease-out);
+}
+
+.lvTourStep {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.lvTourCard h3 { margin: 4px 0 6px; font-size: 16px; font-weight: 700; color: var(--text-strong); }
+.lvTourCard p { margin: 0 0 12px; }
+
+.lvTourDots { display: flex; gap: 5px; margin-bottom: 12px; }
+.lvTourDots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
+.lvTourDots span.on { width: 16px; border-radius: 3px; background: var(--primary); }
+.lvTour.centred .lvTourDots { display: none; }
+
+.lvTourButtons { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lvTourButtons > span { display: flex; gap: 8px; margin-left: auto; }
+
+.lvTourCard button {
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.lvTourCard .lvTourNext { border-color: var(--primary); background: var(--primary); color: var(--primary-fg); }
+.lvTourCard .lvTourSkip { padding: 0; border: 0; background: transparent; color: var(--text-muted); font-weight: 500; }
+.lvTourCard .lvTourSkip:hover { color: var(--text-strong); }

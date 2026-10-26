@@ -62,6 +62,7 @@ export class Bridge {
     private lastCircuit = "";
     private lastPoints = "";
     private changeTimer: number | null = null;
+    private tourOffered = false;
 
     private constructor(private readonly app: CirSim) {}
 
@@ -216,6 +217,11 @@ export class Bridge {
         this.lastCircuit = UndoManager.withoutSliders(app.dumpCircuit());
         app.needAnalyze();
         this.post({ type: "initialized", id: msg.id, parts: Exam.allowedParts ? [...Exam.allowedParts] : null });
+        // first-run tour, once per device, unless the host turns it off
+        if (!this.tourOffered) {
+            this.tourOffered = true;
+            app.ui.tour?.maybeAutoStart(msg.tour !== false && !msg.readOnly && app.ui.tourAllowed);
+        }
         this.postGradePointsIfChanged(true);
     }
 

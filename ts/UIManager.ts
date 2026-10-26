@@ -48,6 +48,8 @@ import { Minimap } from "./levantate/canvas/minimap";
 import { ToolDock } from "./levantate/canvas/dock";
 import { Freeze, drawFreezeOverlay, floatingRects } from "./levantate/canvas/freeze";
 import { ViewToggles } from "./levantate/canvas/viewToggles";
+import { HelpPanel } from "./levantate/help/helpPanel";
+import { Tour } from "./levantate/help/tour";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -66,7 +68,8 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // Modified by Levantate Labs, 2026-10-26: Maestro theme (palette, fonts, sliders,
 // side panel, run/stop button), batched drawing. See CHANGES.md.
 // Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
-// values in the properties panel; show/hide the graph strip and side panel.
+// values in the properties panel; show/hide the graph strip and side panel; Help
+// panel and first-run tour.
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -501,6 +504,9 @@ export class UIManager {
     freezeButton!: HTMLButtonElement;
     viewToggles: ViewToggles | null = null;   // Levantate Labs (levantate/canvas/viewToggles.ts)
     sidePanelAvailable = true;                // false when opened with hideSidebar
+    help: HelpPanel | null = null;            // Levantate Labs (levantate/help/helpPanel.ts)
+    tour: Tour | null = null;                 // Levantate Labs (levantate/help/tour.ts)
+    tourAllowed = true;                       // URL parameter tour=0 turns the first-run tour off
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -666,6 +672,7 @@ export class UIManager {
         this.menus.graphsCheckItem.setState(
             qp.getBooleanValue("graphs", this.getOptionFromStorage("graphs", true)));
         this.sidePanelAvailable = !hideSidebar;
+        this.tourAllowed = qp.getBooleanValue("tour", true);
         this.menus.sidePanelCheckItem.setState(!hideSidebar &&
             qp.getBooleanValue("sidePanel", this.getOptionFromStorage("sidePanel", true)));
         this.menus.euroResistorCheckItem.setState(euroSetting);
@@ -925,6 +932,24 @@ export class UIManager {
                 toggleFreeze: () => { if (Freeze.active) this.setSimRunning(true); else this.freeze?.freeze(); },
             }, pill);
         this.applySidePanel();
+        this.tour = new Tour({
+            circuitRect: () => {
+                const r = this.cv.getBoundingClientRect();
+                return { left: r.left, top: r.top, width: r.width, height: this.app.circuitArea.height };
+            },
+            partRect: () => this.tourPartRect(),
+            graphsRect: () => {
+                if (!this.graphsShown() || this.app.scopeManager.scopeCount === 0)
+                    return null;
+                const r = this.cv.getBoundingClientRect();
+                const top = this.app.circuitArea.height;
+                return { left: r.left, top: r.top + top, width: r.width, height: this.canvasHeight - top };
+            },
+        });
+        if (pill != null)
+            this.help = new HelpPanel({
+                startTour: () => this.tour?.start(),
+            }, pill);
         this.freeze = new Freeze({
             setRunning: (on) => this.setSimRunning(on),
             timeText: () => CircuitElm.getTimeText(this.app.sim.t),
@@ -1020,6 +1045,24 @@ export class UIManager {
     }
 
     // ---- Levantate Labs: show/hide the graph strip and the side panel ----
+
+    // Levantate Labs: screen box of a part the tour can point at (the first
+    // non-wire part fully in view)
+    private tourPartRect(): { left: number; top: number; width: number; height: number } | null {
+        const r = this.cv.getBoundingClientRect();
+        const t = this.app.transform;
+        for (const ce of this.elmList) {
+            if (ce.isWireEquivalent() || ce.isRemovableWire() || ce.boundingBox == null)
+                continue;
+            const b = ce.boundingBox;
+            const left = r.left + b.x * t[0] + t[4], top = r.top + b.y * t[3] + t[5];
+            const width = b.width * t[0], height = b.height * t[3];
+            if (left >= r.left && top >= r.top && left + width <= r.right &&
+                    top + height <= r.top + this.app.circuitArea.height)
+                return { left, top, width, height };
+        }
+        return null;
+    }
 
     graphsShown(): boolean {
         return this.menus.graphsCheckItem.getState();
