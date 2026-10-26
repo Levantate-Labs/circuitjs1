@@ -7,9 +7,9 @@
 */
 
 import { describe, expect, it } from "vitest";
-import { LIMITS, validateRequest } from "./runner";
+import { LIMITS, validateRequest, type GradeRequest } from "./runner";
 
-const ok = { circuit: "$ 1 0.000005 10 50 5 43\n", settle: 0.01, window: 0.02, points: [] };
+const ok: GradeRequest = { circuit: "$ 1 0.000005 10 50 5 43\n", settle: 0.01, window: 0.02, points: [] };
 
 describe("validateRequest", () => {
     it("accepts a normal request", () => {
