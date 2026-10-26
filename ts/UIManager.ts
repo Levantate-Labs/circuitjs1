@@ -47,6 +47,7 @@ import { findGuides, splitPosts, drawGuides, drawReadout, moveText, type DragKin
 import { Minimap } from "./levantate/canvas/minimap";
 import { ToolDock } from "./levantate/canvas/dock";
 import { Freeze, drawFreezeOverlay, floatingRects } from "./levantate/canvas/freeze";
+import { ViewToggles } from "./levantate/canvas/viewToggles";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -65,7 +66,7 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // Modified by Levantate Labs, 2026-10-26: Maestro theme (palette, fonts, sliders,
 // side panel, run/stop button), batched drawing. See CHANGES.md.
 // Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
-// values in the properties panel.
+// values in the properties panel; show/hide the graph strip and side panel.
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -498,6 +499,8 @@ export class UIManager {
     dock: ToolDock | null = null;     // Levantate Labs (levantate/canvas/dock.ts)
     freeze: Freeze | null = null;     // Levantate Labs (levantate/canvas/freeze.ts)
     freezeButton!: HTMLButtonElement;
+    viewToggles: ViewToggles | null = null;   // Levantate Labs (levantate/canvas/viewToggles.ts)
+    sidePanelAvailable = true;                // false when opened with hideSidebar
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -660,6 +663,11 @@ export class UIManager {
             qp.getBooleanValue("minimap", this.getOptionFromStorage("minimap", true)));
         this.menus.dockCheckItem.setState(
             qp.getBooleanValue("dock", this.getOptionFromStorage("dock", true)));
+        this.menus.graphsCheckItem.setState(
+            qp.getBooleanValue("graphs", this.getOptionFromStorage("graphs", true)));
+        this.sidePanelAvailable = !hideSidebar;
+        this.menus.sidePanelCheckItem.setState(!hideSidebar &&
+            qp.getBooleanValue("sidePanel", this.getOptionFromStorage("sidePanel", true)));
         this.menus.euroResistorCheckItem.setState(euroSetting);
         this.menus.euroResistorCheckItem.setCommand({
             execute: () => {
@@ -902,6 +910,21 @@ export class UIManager {
             run: (menu, item) => this.app.commands.menuPerformed(menu, item),
             beginDrag: (cls, x, y) => this.mouse.beginToolbarDrag(cls, x, y),
         }, this.canvasWrapper);
+        const pill = this.canvasWrapper.querySelector<HTMLElement>(".zoomPill");
+        if (pill != null)
+            this.viewToggles = new ViewToggles({
+                graphsShown: () => this.graphsShown(),
+                setGraphs: (on) => this.setGraphsShown(on),
+                graphCount: () => this.app.scopeManager?.scopeCount ?? 0,
+                panelAvailable: () => this.sidePanelAvailable,
+                panelShown: () => this.sidePanelShown(),
+                setPanel: (on) => this.setSidePanelShown(on),
+                running: () => this.app.simRunning,
+                setRunning: (on) => this.setSimRunning(on),
+                frozen: () => Freeze.active,
+                toggleFreeze: () => { if (Freeze.active) this.setSimRunning(true); else this.freeze?.freeze(); },
+            }, pill);
+        this.applySidePanel();
         this.freeze = new Freeze({
             setRunning: (on) => this.setSimRunning(on),
             timeText: () => CircuitElm.getTimeText(this.app.sim.t),
@@ -937,7 +960,7 @@ export class UIManager {
         let expectedWidth  = window.innerWidth;
         let expectedHeight = window.innerHeight;
         expectedHeight -= (this.hideMenu ? 0 : UIManager.MENUBARHEIGHT);
-        if (!this.app.isMobile(this.sidePanelCheckboxLabel))
+        if (!this.app.isMobile(this.sidePanelCheckboxLabel) && this.sidePanelShown())
             expectedWidth -= UIManager.VERTICALPANELWIDTH;
         if (this.menus.toolbarCheckItem.getState())
             expectedHeight -= UIManager.TOOLBARHEIGHT;
@@ -953,7 +976,7 @@ export class UIManager {
         let height = window.innerHeight;
         height -= (this.hideMenu ? 0 : UIManager.MENUBARHEIGHT);
 
-        if (!this.app.isMobile(this.sidePanelCheckboxLabel))
+        if (!this.app.isMobile(this.sidePanelCheckboxLabel) && this.sidePanelShown())
             width -= UIManager.VERTICALPANELWIDTH;
         if (this.menus.toolbarCheckItem.getState())
             height -= UIManager.TOOLBARHEIGHT;
@@ -989,11 +1012,49 @@ export class UIManager {
         const height = this.canvasHeight;
         const width  = this.canvasWidth;
         let h: number;
-        if (this.app.scopeManager == null || this.app.scopeManager.scopeCount === 0)
+        if (this.app.scopeManager == null || this.app.scopeManager.scopeCount === 0 || !this.graphsShown())
             h = 0;
         else
             h = Math.round(height * this.app.scopeManager.scopeHeightFraction);
         this.app.circuitArea = new Rectangle(0, 0, width, height - h);
+    }
+
+    // ---- Levantate Labs: show/hide the graph strip and the side panel ----
+
+    graphsShown(): boolean {
+        return this.menus.graphsCheckItem.getState();
+    }
+
+    setGraphsShown(on: boolean): void {
+        this.menus.graphsCheckItem.setState(on);
+        this.setOptionInStorage("graphs", on);
+        this.setCircuitArea();
+        this.repaint();
+    }
+
+    sidePanelShown(): boolean {
+        return this.sidePanelAvailable && this.menus.sidePanelCheckItem.getState();
+    }
+
+    setSidePanelShown(on: boolean): void {
+        if (!this.sidePanelAvailable)
+            return;
+        this.menus.sidePanelCheckItem.setState(on);
+        this.setOptionInStorage("sidePanel", on);
+        this.applySidePanel();
+        this.setCanvasSize();
+        this.repaint();
+    }
+
+    applySidePanel(): void {
+        const shown = this.sidePanelShown();
+        document.body.classList.toggle("lvNoSidePanel", this.sidePanelAvailable && !shown);
+        if (!this.sidePanelAvailable)
+            return;
+        const right = (shown ? UIManager.VERTICALPANELWIDTH : 0) + "px";
+        this.toolbar.element.style.right = right;
+        if (this.canvasWrapper)
+            this.canvasWrapper.style.right = right;
     }
 
     centerCircuit(): void {
@@ -1372,6 +1433,7 @@ export class UIManager {
         CanvasNavigation.instance?.afterPaint();
         this.minimap?.update();
         this.dock?.update();
+        this.viewToggles?.update();
         CirSim.editDialog?.panel?.update();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
@@ -1436,7 +1498,7 @@ export class UIManager {
     drawBottomArea(g: Graphics): void {
         let leftX = 0;
         let h = 0;
-        if (this.app.stopMessage == null && this.app.scopeManager.scopeCount === 0) {
+        if (this.app.stopMessage == null && (this.app.scopeManager.scopeCount === 0 || !this.graphsShown())) {
             leftX = UIManager.max(this.canvasWidth - CirSim.infoWidth, 0);
             const h0 = Math.round(this.canvasHeight * this.app.scopeManager.scopeHeightFraction);
             h = (this.mouse.getMouseElm() == null) ? 70 : h0;
@@ -1449,7 +1511,7 @@ export class UIManager {
         g.fillRect(leftX, this.app.circuitArea.height - h,
                    this.app.circuitArea.width, this.canvasHeight - this.app.circuitArea.height + h);
         g.setFont(CircuitElm.unitsFont);
-        let ct = this.app.scopeManager.scopeCount;
+        let ct = this.graphsShown() ? this.app.scopeManager.scopeCount : 0;
         if (this.app.stopMessage != null)
             ct = 0;
         Scope.clearCursorInfo();

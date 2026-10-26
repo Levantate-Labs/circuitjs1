@@ -128,6 +128,18 @@ License, version 2 or (at your option) any later version.
   options are unchanged dialogs), `UIManager.ts` (live update, highlight).
   Tests: `properties.test.ts`.
 
+### Show and hide the graphs and side panel
+
+- New `ts/levantate/canvas/viewToggles.ts`: two buttons at the left of the
+  zoom pill hide or show the graph strip (scopes, with a count in the tooltip)
+  and the side panel, giving the circuit the whole window. While the side panel
+  is hidden, Run/Stop and Freeze appear in the pill.
+- Options > Show Graphs and Show Side Panel do the same (saved, on by default);
+  URL parameters `graphs=0` / `1` and `sidePanel=0` / `1` override them. Pages
+  opened with `hideSidebar` keep upstream's behaviour.
+- Hooks: `UIManager.ts` (canvas and circuit area sizes, bottom-area drawing),
+  `MouseManager.ts` (no scope splitter while graphs are hidden), `Menus.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

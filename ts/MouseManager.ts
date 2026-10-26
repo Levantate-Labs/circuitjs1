@@ -17,6 +17,7 @@
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); locked parts can't be rewired, split or value-scrolled. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-28: no scope splitter while the graphs are hidden.
 
 import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
@@ -761,7 +762,7 @@ export class MouseManager {
     }
 
     private mouseIsOverSplitter(x: number, y: number): boolean {
-	if (this.sim.scopeManager.scopeCount === 0)
+	if (this.sim.scopeManager.scopeCount === 0 || !this.ui.graphsShown())
 	    return false;
 	const isOverSplitter =
 	    x >= 0 && x < this.sim.circuitArea.width &&

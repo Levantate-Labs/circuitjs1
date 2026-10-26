@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap / Show Tool Dock; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap / Show Tool Dock / Show Graphs / Show Side Panel; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -277,6 +277,8 @@ export class Menus {
     dotGridCheckItem         = new CheckItem();   // Levantate Labs: canvas dot grid
     minimapCheckItem         = new CheckItem();   // Levantate Labs: canvas minimap
     dockCheckItem            = new CheckItem();   // Levantate Labs: floating tool dock
+    graphsCheckItem          = new CheckItem();   // Levantate Labs: show the scope strip
+    sidePanelCheckItem       = new CheckItem();   // Levantate Labs: show the side panel
     showValuesCheckItem      = new CheckItem(true);
     conductanceCheckItem     = new CheckItem();
     euroResistorCheckItem    = new CheckItem();
@@ -450,6 +452,10 @@ export class Menus {
             this.app.ui?.setOptionInStorage("dotGrid", this.dotGridCheckItem.getState());
             this.app.repaint();
         } });
+        optMenu.addCheckItem(this.graphsCheckItem, "Show Graphs");
+        this.graphsCheckItem.setCommand({ execute: () => this.app.ui?.setGraphsShown(this.graphsCheckItem.getState()) });
+        optMenu.addCheckItem(this.sidePanelCheckItem, "Show Side Panel");
+        this.sidePanelCheckItem.setCommand({ execute: () => this.app.ui?.setSidePanelShown(this.sidePanelCheckItem.getState()) });
         optMenu.addCheckItem(this.dockCheckItem, "Show Tool Dock");
         this.dockCheckItem.setCommand({ execute: () => {
             this.app.ui?.setOptionInStorage("dock", this.dockCheckItem.getState());

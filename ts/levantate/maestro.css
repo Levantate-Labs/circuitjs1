@@ -880,7 +880,7 @@ body.lvDock .toolbarSepParts { display: none !important; }
     align-items: center;
     gap: 6px;
     padding: 4px 4px 4px 10px;
-    max-width: calc(100% - 200px);
+    max-width: calc(100% - 340px);
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
@@ -1070,3 +1070,25 @@ dialog.circuitDialog.propsPanel {
     border-color: var(--error);
     box-shadow: 0 0 0 3px var(--error-tint);
 }
+
+/* ---- View toggles in the zoom pill (levantate/canvas/viewToggles.ts) ---- */
+
+.zoomPill > .viewToggle {
+    width: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.zoomPill > .viewToggle.on { color: var(--text-strong); }
+.zoomPill > .viewFreeze.on { background: var(--info-tint); color: var(--info); }
+
+.zoomPillSep {
+    width: 1px;
+    height: 18px;
+    margin: 0 3px;
+    background: var(--border);
+}
+
+body.lvNoSidePanel .verticalPanel { display: none !important; }
