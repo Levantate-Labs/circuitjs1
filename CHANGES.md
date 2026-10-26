@@ -162,6 +162,24 @@ License, version 2 or (at your option) any later version.
 - Hooks: `UIManager.ts` (creates both), `CirSim.ts` (automatic start outside
   an iframe). Tests: `help.test.ts`.
 
+### Grading runner and service (roadmap slice L6)
+
+- New `ts/levantate/grader/runner.ts`: with `?grader=1` the page exposes
+  `window.LvGrader.run({ circuit, settle, window, points })`. It loads the
+  circuit, stops live stepping, fakes the clock so each pass of the simulation
+  loop advances exactly one time step, runs to `settle`, resets the grading
+  points' statistics, runs through `window` and returns the readings, the
+  simulated time, the step count and the circuit's grading points. Results are
+  the same on every run and every machine. Simulator stop messages are reported
+  as errors; step and time limits keep a circuit from running forever.
+  `CirSim.ts` installs it (and skips the tour) when the parameter is present.
+- New `ts/grader/server.mjs`: an HTTP service (`POST /grade`, bearer token,
+  `GET /healthz`) that serves the built app to headless Chromium on a loopback
+  port, blocks every other request the page makes, reloads the page for each
+  circuit and returns the runner's result. `ts/grader/Dockerfile` builds it on
+  the Playwright image; `playwright-core` (Apache-2.0) added as a dependency.
+  API and deployment: `docs/grader-service.md`. Tests: `runner.test.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

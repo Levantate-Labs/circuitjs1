@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts; part allow-list; installs the embedding bridge; 2026-10-28: starts the first-run tour. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts; part allow-list; installs the embedding bridge; 2026-10-28: starts the first-run tour; installs the grading runner with ?grader=1. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -324,8 +324,14 @@ export class CirSim {
         // Levantate Labs: postMessage bridge for host pages (only active inside an iframe)
         const { Bridge } = await import('./levantate/bridge/bridge');
         Bridge.install(this);
+        // Levantate Labs: grading runner for the grading service (?grader=1)
+        const grader = new URLSearchParams(window.location.search).get("grader") === "1";
+        if (grader) {
+            const { installGrader } = await import('./levantate/grader/runner');
+            installGrader(this);
+        }
         // Levantate Labs: first-run tour (embedded pages start it from the bridge's init)
-        if (window.parent === window)
+        if (window.parent === window && !grader)
             this.ui.tour?.maybeAutoStart(this.ui.tourAllowed);
 
         this.setSimRunning(running);
