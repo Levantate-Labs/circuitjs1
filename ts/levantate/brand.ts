@@ -8,7 +8,7 @@
 
 // Product name shown in the browser tab. The About box keeps crediting
 // CircuitJS1 and its authors, and keeps the GPL notice (GPLv2 section 2(c)).
-export const PRODUCT_NAME = "Maestro Circuit Lab";
+export const PRODUCT_NAME = "Maestro Simulation Lab";
 
 // Public source of this fork, linked from the About box (GPLv2 section 3).
 export const SOURCE_URL = "https://github.com/Levantate-Labs/circuitjs1/tree/levantate";

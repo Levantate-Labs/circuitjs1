@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -272,6 +273,7 @@ export class Menus {
     powerCheckItem           = new CheckItem();
     smallGridCheckItem       = new CheckItem();
     crossHairCheckItem       = new CheckItem();
+    dotGridCheckItem         = new CheckItem();   // Levantate Labs: canvas dot grid
     showValuesCheckItem      = new CheckItem(true);
     conductanceCheckItem     = new CheckItem();
     euroResistorCheckItem    = new CheckItem();
@@ -438,6 +440,11 @@ export class Menus {
         this.smallGridCheckItem.setCommand({ execute: () => this.app.setGrid() });
         optMenu.addCheckItem(this.toolbarCheckItem, "Toolbar");
         this.toolbarCheckItem.setCommand({ execute: () => this.app.ui?.setToolbar() });
+        optMenu.addCheckItem(this.dotGridCheckItem, "Show Dot Grid");
+        this.dotGridCheckItem.setCommand({ execute: () => {
+            this.app.ui?.setOptionInStorage("dotGrid", this.dotGridCheckItem.getState());
+            this.app.repaint();
+        } });
         optMenu.addCheckItem(this.crossHairCheckItem, "Show Cursor Cross Hairs");
         this.crossHairCheckItem.setCommand({ execute: () =>
             this.app.ui?.setOptionInStorage("crossHair", this.crossHairCheckItem.getState()) });

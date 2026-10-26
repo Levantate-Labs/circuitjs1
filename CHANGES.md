@@ -64,6 +64,25 @@ License, version 2 or (at your option) any later version.
   kept (GPLv2 section 2(c)). The JavaScript API keeps its name
   (`window.CircuitJS1`) so existing integrations keep working.
 
+## 2026-10-27
+
+### Canvas visuals (roadmap slice L1)
+
+- New `ts/levantate/canvas/visuals.ts`, drawn from `UIManager.updateCircuit()`:
+  - **Dot grid** on the canvas, aligned with the snapping grid. Spacing doubles
+    as you zoom out and the in-between dots fade first, so the grid never jumps.
+    Not included in exported images.
+  - **Setting:** Options > Show Dot Grid (`Menus.ts`), saved in local storage,
+    on by default. The URL parameter `dotGrid=0` / `dotGrid=1` overrides the
+    saved setting (for embedding).
+  - **Hover halo:** soft rounded highlight behind the part under the cursor.
+  - **Selection bounds:** one rectangle around everything selected.
+  - **Selection box:** tinted fill with a 1px outline (was an outline only).
+- `levantate/theme.ts`: `canvasDot` colour for light and dark.
+- Product name changed to **Maestro Simulation Lab** (tab title, About box).
+
+## 2026-10-26 (continued)
+
 ### Canvas navigation (Figma-style, phase K1)
 
 - New `ts/levantate/canvas/navigation.ts`, installed in front of `MouseManager`:

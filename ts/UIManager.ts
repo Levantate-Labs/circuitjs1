@@ -42,6 +42,7 @@ import { parseIntStrict, parseFloatStrict } from "./NumberParse";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
 import { Theme } from "./levantate/theme";
 import { CanvasNavigation } from "./levantate/canvas/navigation";
+import { drawDotGrid, drawHoverHalo, drawSelectionBounds, drawSelectionBox } from "./levantate/canvas/visuals";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -643,6 +644,8 @@ export class UIManager {
         this.app.showPropsOnCreate = this.getOptionFromStorage("showPropsOnCreate", false);
         this.app.showPropsOnClick = this.getOptionFromStorage("showPropsOnClick", true);
         this.menus.crossHairCheckItem.setState(this.getOptionFromStorage("crossHair", false));
+        this.menus.dotGridCheckItem.setState(
+            qp.getBooleanValue("dotGrid", this.getOptionFromStorage("dotGrid", true)));
         this.menus.euroResistorCheckItem.setState(euroSetting);
         this.menus.euroResistorCheckItem.setCommand({
             execute: () => {
@@ -1090,6 +1093,9 @@ export class UIManager {
         this.cv.style.backgroundColor = Theme.palette.background;
 
         g.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+        if (this.menus.dotGridCheckItem.getState())
+            drawDotGrid(this.cvcontext, this.app.transform, this.app.circuitArea.width,
+                        this.app.circuitArea.height, this.app.gridSize);
 
         if (this.app.simRunning) {
             if (this.app.sim.needsStamp)
@@ -1148,6 +1154,12 @@ export class UIManager {
             this.app.transform[3] * scale,
             this.app.transform[4] * scale,
             this.app.transform[5] * scale);
+
+        // hover halo under the part the cursor is on (not while dragging or box-selecting)
+        const hovered = this.mouse.getMouseElm();
+        if (hovered != null && !hovered.isSelected() && this.mouse.selectedArea == null &&
+                this.mouse.tempMouseMode === MouseManager.MODE_SELECT && this.mouse.dragElm == null)
+            drawHoverHalo(this.cvcontext, hovered, this.app.transform[0]);
 
         perfmon.startContext("elm.draw()");
         try {
@@ -1220,11 +1232,10 @@ export class UIManager {
             g.fillOval(cn.x - 3, cn.y - 3, 7, 7);
         }
 
-        if (this.mouse.selectedArea != null) {
-            g.setColor(CircuitElm.selectColor);
-            g.drawRect(this.mouse.selectedArea.x, this.mouse.selectedArea.y,
-                       this.mouse.selectedArea.width, this.mouse.selectedArea.height);
-        }
+        if (this.mouse.selectedArea != null)
+            drawSelectionBox(this.cvcontext, this.mouse.selectedArea, this.app.transform[0]);
+        else if (this.mouse.tempMouseMode !== MouseManager.MODE_DRAG_SELECTED)
+            drawSelectionBounds(this.cvcontext, this.elmList, this.app.transform[0]);
 
         if (this.menus.crossHairCheckItem.getState() && this.mouse.mouseCursorX >= 0
                 && this.mouse.mouseCursorX <= this.app.circuitArea.width
