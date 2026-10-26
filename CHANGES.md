@@ -43,6 +43,12 @@ License, version 2 or (at your option) any later version.
 - `ScopePlot.ts`, `ScopeFFT.ts`: trace colours from the theme.
 - `ScopeOverlays.ts`: overlay text inset from the scope card edge.
 
+### Deployment
+
+- `ts/package.json`: `start` script serves `dist/` with `serve` (MIT) on
+  `$PORT`, `postbuild` copies `ts/serve.json` into `dist/`, `engines.node` set to
+  `>=22.12`. New `ts/serve.json` and `DEPLOY.md` (Railway settings).
+
 ### Waveform drawing
 
 - `Scope.ts`: grid lines are collected into two paths (minor, major) and the

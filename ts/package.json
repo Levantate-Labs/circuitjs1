@@ -6,8 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "postbuild": "node -e \"require('fs').copyFileSync('serve.json', 'dist/serve.json')\"",
     "preview": "vite preview",
+    "start": "serve dist --no-clipboard --listen tcp://0.0.0.0:${PORT:-8080}",
     "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22.12"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +27,7 @@
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
-    "lz-string": "^1.5.0"
+    "lz-string": "^1.5.0",
+    "serve": "^14.2.6"
   }
 }
