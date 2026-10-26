@@ -16,13 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts; part allow-list; installs the embedding bridge. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
 // For information about the theory behind this, see Electronic Circuit & System Simulation Methods by Pillage
 // or https://github.com/sharpie7/circuitjs1/blob/master/INTERNALS.md
 
+import { Exam } from "./levantate/exam/exam";
 import { PRODUCT_NAME } from "./levantate/brand";
 import { Menus } from "./Menus";
 import { MouseManager } from "./MouseManager";
@@ -320,6 +321,9 @@ export class CirSim {
         this.commands?.enablePaste();
         this.jsInterface = HookRegistry.createJSInterface?.(this);
         this.jsInterface?.setupJSInterface();
+        // Levantate Labs: postMessage bridge for host pages (only active inside an iframe)
+        const { Bridge } = await import('./levantate/bridge/bridge');
+        Bridge.install(this);
 
         this.setSimRunning(running);
     }
@@ -671,6 +675,9 @@ export class CirSim {
     }
 
     static constructElement(n: string, x1: number, y1?: number): any {
+        // Levantate Labs: parts outside the host's allow-list can't be created
+        if (!Exam.isPartAllowed(n))
+            return null;
         const elm = ElementFactory.create(n, x1, y1 ?? 0);
         if (elm != null)
             return elm;

@@ -136,7 +136,7 @@ describe("GradePointElm", () => {
     it("hides its edit fields when locked", () => {
         const gp = new GradePointElm(0, 0);
         expect(gp.getEditInfo(0)).not.toBeNull();
-        gp.locked = true;
+        gp.levLocked = true;
         expect(gp.getEditInfo(0)).toBeNull();
         expect(gp.hasProperties()).toBe(false);
     });

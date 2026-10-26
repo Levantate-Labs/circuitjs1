@@ -47,9 +47,6 @@ export class GradePointElm extends CircuitElm {
     kind!: GradePointKind;
     pointId!: string;
     label!: string;
-    // Set by the platform bridge in exam mode (roadmap L3): locked pins can't be
-    // moved, edited or deleted. Not saved with the circuit.
-    locked = false;
 
     readonly stats = new SignalStats();
     private target: CircuitElm | null = null;
@@ -263,7 +260,8 @@ export class GradePointElm extends CircuitElm {
     }
 
     getEditInfo(n: number): EditInfo | null {
-        if (this.locked)
+        // locked pins (host's lockStarter) can't be edited; levLocked is on CircuitElm
+        if (this.levLocked)
             return null;
         if (n === 0) {
             const ei = new EditInfo("Label", 0, -1, -1);

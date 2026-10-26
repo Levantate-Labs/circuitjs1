@@ -24,6 +24,10 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://studywithmaestro.com https://*.studywithmaestro.com https://*.levantate.in http://localhost:* http://127.0.0.1:*"
         }
       ]
     },

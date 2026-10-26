@@ -16,7 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-27: no recovery copy in local storage during exams. See CHANGES.md.
 
+import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
 import { CircuitLoader } from "./CircuitLoader";
 
@@ -106,6 +108,9 @@ export class UndoManager {
     }
 
     writeRecoveryToStorage(): void {
+        // Levantate Labs: exams keep nothing in the shared local storage
+        if (Exam.active)
+            return;
         CirSim.console("write recovery");
         const stor = window.localStorage;
         if (stor == null)

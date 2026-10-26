@@ -134,6 +134,7 @@ export class Toolbar {
         // Track buttons that belong to the "main" command group
         if (command.getMenuName() === "main") {
             this.highlightableButtons.set(command.getItemName(), iconLabel);
+            iconLabel.dataset.elmClass = command.getItemName();   // part allow-list (levantate/exam)
 
             // pressing and dragging (rather than just clicking) drops a new element
             // where the mouse is released, instead of switching modes
@@ -285,6 +286,7 @@ export class Toolbar {
             variantButton.title = app.getLabelTextForClass(info[i + 1]) ?? info[i + 1];
 
             variantButton.className = 'paletteItem';
+            variantButton.dataset.elmClass = info[i + 1];
             variantButton.style.touchAction = 'none';
 
             const command = new MyCommand("main", info[i + 1]);
@@ -296,6 +298,7 @@ export class Toolbar {
             // (hiding the click target between mousedown and mouseup suppresses it).
             const selectVariant = () => {
                 iconLabel.innerHTML = smallSvg;
+                iconLabel.dataset.elmClass = command.getItemName();
                 this.highlightableButtons.delete(mainCommand.getItemName());
                 this.highlightableButtons.set(command.getItemName(), iconLabel);
                 mainCommand.setItemName(command.getItemName());

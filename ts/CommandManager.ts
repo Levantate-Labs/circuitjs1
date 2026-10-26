@@ -16,8 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts). See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); exam-mode command blocking, locked parts, in-memory clipboard. See CHANGES.md.
 
+import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
 import { CircuitLoader } from "./CircuitLoader";
 import { WireConverter } from "./WireConverter";
@@ -56,8 +57,17 @@ export class CommandManager {
     menuPerformed(menu: string, item: string): void {
         const contextPanel = this.app.ui?.contextPanel;
 
+        // Levantate Labs: exam mode and the part allow-list block some commands
+        if (Exam.blocks(menu, item) || this.flipWouldMoveLockedParts(item)) {
+            Exam.report("blocked", item);
+            this.app.ui?.showToast?.(Locale.LS("Not available in this question"));
+            return;
+        }
         if ((menu == "edit" || menu == "main" || menu == "scopes") && this.app.ui?.isReadOnly()) {
-            window.alert(Locale.LS("Editing disabled.  Re-enable from the Options menu."));
+            if (Exam.active)
+                this.app.ui?.showToast?.(Locale.LS("Editing is locked"));
+            else
+                window.alert(Locale.LS("Editing disabled.  Re-enable from the Options menu."));
             return;
         }
         if (item == "about")
@@ -360,6 +370,8 @@ export class CommandManager {
     }
 
     doEdit(eable: any, pushUndo: boolean = true): void {
+        if (Exam.isLocked(eable))
+            return;
         this.app.mouse.clearSelection();
         if (pushUndo)
             this.app.undoManager?.pushUndo();
@@ -493,7 +505,15 @@ export class CommandManager {
         this.app.needAnalyze();
     }
 
+    // whole-circuit mirror/rotate (nothing selected) would move locked parts too
+    private flipWouldMoveLockedParts(item: string): boolean {
+        if (item != "mirrorX" && item != "mirrorY" && item != "rotateCW" && item != "rotateCCW")
+            return false;
+        return this.countSelected() == 0 && this.app.elmList.some((ce: any) => Exam.isLocked(ce));
+    }
+
     doCut(): void {
+        Exam.report("cut");
         this.app.undoManager?.pushUndo();
         this.setMenuSelection();
         this.clipboard = this.copyOfSelectedElms();
@@ -502,12 +522,18 @@ export class CommandManager {
         this.enablePaste();
     }
 
+    // In exam mode the clipboard stays in memory: localStorage is shared by every tab
+    // on the simulator's site, so a circuit copied elsewhere could be pasted into a test.
     writeClipboardToStorage(): void {
+        if (Exam.active) {
+            Exam.clipboard = this.clipboard;
+            return;
+        }
         localStorage.setItem("circuitClipboard", this.clipboard);
     }
 
     readClipboardFromStorage(): void {
-        this.clipboard = localStorage.getItem("circuitClipboard") ?? "";
+        this.clipboard = Exam.active ? Exam.clipboard : (localStorage.getItem("circuitClipboard") ?? "");
     }
 
     doDelete(pushUndoFlag: boolean): void {
@@ -533,7 +559,7 @@ export class CommandManager {
     }
 
     willDelete(ce: any): boolean {
-        return ce.isSelected() || ce.isMouseElm();
+        return (ce.isSelected() || ce.isMouseElm()) && !Exam.isLocked(ce);
     }
 
     copyOfSelectedElms(): string {
@@ -562,6 +588,7 @@ export class CommandManager {
     }
 
     doCopy(): void {
+        Exam.report("copy");
         const clearSel = (this.app.mouse.menuElm != null && !this.app.mouse.menuElm.selected);
         this.setMenuSelection();
         this.clipboard = this.copyOfSelectedElms();
@@ -584,6 +611,8 @@ export class CommandManager {
     }
 
     doPaste(dump: string | null): void {
+        if (dump == null)
+            Exam.report("paste");
         this.app.undoManager?.pushUndo();
         this.app.mouse.clearSelection();
         let oldbb: Rectangle | null = null;

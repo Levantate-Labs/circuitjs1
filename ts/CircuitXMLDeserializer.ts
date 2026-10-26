@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-27: skip parts that can't be created instead of crashing. See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { CircuitElm } from "./CircuitElm";
@@ -173,6 +174,11 @@ export class CircuitXMLDeserializer {
                 continue;
             }
             const elm = this.app.constructElement(className, 0, 0);
+            if (elm == null) {
+                // Levantate Labs: e.g. a part outside an exam's allow-list in a paste
+                console.log("skipped xml element: " + tagName);
+                continue;
+            }
             this.currentXmlElement = elem;
             this.currentElm = elm;
             elm.undumpXml(this);

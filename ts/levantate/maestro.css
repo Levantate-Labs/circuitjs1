@@ -761,3 +761,22 @@ body.lvPanning { cursor: grabbing !important; }
     margin: 6px 4px;
     background: var(--border);
 }
+
+/* ---- Exam mode (levantate/exam/exam.ts) ---- */
+
+.lvHidden { display: none !important; }
+
+.lvAboutLink {
+    display: block;
+    margin-top: 20px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.lvAboutLink:hover { color: var(--text-strong); }

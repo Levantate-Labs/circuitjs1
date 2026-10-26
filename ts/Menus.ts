@@ -16,10 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid; Add Grading Point. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
+import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
@@ -302,6 +303,8 @@ export class Menus {
     }
 
     private menuBarRow: HTMLTableRowElement = document.createElement('tr');
+    // top-level menu cells by key ("file", "edit", ..., "circuits"), for exam mode
+    topItems: Map<string, HTMLElement> = new Map();
 
     init(): void {
         const os = navigator.platform;
@@ -469,12 +472,14 @@ export class Menus {
         // if (TestCreator.enabled) toolsMenu.addCommand(Locale.LS("Create Test"), "tools", "createTest");
 
         // ---- Assemble horizontal bar ----
-        this.addTopItem(this.menuBarRow, Locale.LS("File"),    fileMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Edit"),    editMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Draw"),    drawMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Scopes"),  scopesMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Options"), optMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Tools"),   toolsMenu);
+        this.topItems.set("file",    this.addTopItem(this.menuBarRow, Locale.LS("File"),    fileMenu));
+        this.topItems.set("edit",    this.addTopItem(this.menuBarRow, Locale.LS("Edit"),    editMenu));
+        this.topItems.set("draw",    this.addTopItem(this.menuBarRow, Locale.LS("Draw"),    drawMenu));
+        this.topItems.set("scopes",  this.addTopItem(this.menuBarRow, Locale.LS("Scopes"),  scopesMenu));
+        this.topItems.set("options", this.addTopItem(this.menuBarRow, Locale.LS("Options"), optMenu));
+        this.topItems.set("tools",   this.addTopItem(this.menuBarRow, Locale.LS("Tools"),   toolsMenu));
+        // the Dropbox script isn't loaded in this fork (no third-party scripts)
+        this.importFromDropboxItem._li?.classList.add("lvHidden");
 
         // ---- Element right-click context menu ----
         this.buildElmMenuBar();
@@ -737,7 +742,11 @@ export class Menus {
         const stack: Menu[] = [];
         const submenuStack: string[] = [""]; // submenu titles for palette circuit hints
         let currentMenu = new Menu(this.app);
-        this.addTopItem(this.menuBarRow, Locale.LS("Circuits"), currentMenu);
+        const circuitsTop = this.addTopItem(this.menuBarRow, Locale.LS("Circuits"), currentMenu);
+        this.topItems.set("circuits", circuitsTop);
+        // (the examples list loads after startup, possibly after an exam began)
+        if (Exam.active)
+            circuitsTop.classList.add("lvHidden");
         stack.push(currentMenu);
 
         for (const line of lines) {

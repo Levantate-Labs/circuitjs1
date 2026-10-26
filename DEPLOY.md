@@ -39,6 +39,11 @@ below are all that's needed.
 
 Node: `engines.node` is `>=22.12` (required by Vite 8).
 
+Embedding: host pages are allowed by origin (see `docs/bridge-protocol.md`). To
+allow another host, set a Railway variable `VITE_PARENT_ORIGINS` (comma-separated,
+e.g. `https://partner.example.com`) before the build, and add it to the
+`frame-ancestors` list in `ts/serve.json`.
+
 ### If the build fails right after "using build driver railpack"
 
 Check **Root Directory** first. Without it Railway builds from the repo root,

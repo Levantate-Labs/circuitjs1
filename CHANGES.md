@@ -66,6 +66,41 @@ License, version 2 or (at your option) any later version.
 
 ## 2026-10-27
 
+### Embedding bridge and exam mode (roadmap slice L3)
+
+- **Protocol:** `docs/bridge-protocol.md` (v1). A host page drives the
+  simulator in an iframe with `postMessage` only: `init`, `export`,
+  `setReadOnly`, `getGradePoints`, `resetStats`, `measure`; the simulator sends
+  `ready`, `initialized`, `changed` (debounced), `exported`, `gradePoints`,
+  `measured`, `integrity`, `error`.
+- **Bridge:** `ts/levantate/bridge/bridge.ts`, installed at the end of
+  `CirSim.init()`, active only inside an iframe. Messages are accepted only from
+  allowed origins (localhost, `studywithmaestro.com` and its subdomains,
+  `*.levantate.in`, plus `VITE_PARENT_ORIGINS` at build time); the first `init`
+  fixes the host origin. Circuits are capped at 256 KB.
+- **Exam mode** (`ts/levantate/exam/exam.ts`, `init.exam`): hides the File,
+  Tools and Circuits menus and Options > Disable Editing; blocks import/export,
+  print, recovery, examples, subcircuit and dev tools; keeps the clipboard and
+  crash recovery out of local storage (shared by all tabs on the site); reports
+  copy/cut/paste and blocked actions to the host; adds an "About & licence" link
+  to the side panel so the GPL notice stays reachable.
+- **Part allow-list** (`init.parts`): only listed parts (plus wires) can be
+  added, via `CirSim.constructElement`; menus, toolbar buttons and variant
+  pickers hide the rest; pasted circuits drop disallowed parts.
+- **Locked starter parts** (`init.lockStarter`): `CircuitElm.levLocked`.
+  Locked parts can't be selected (so not moved, cut, copied, mirrored or
+  rotated), deleted by hover, edited, rewired by dragging an end, value-scrolled
+  or split; their sliders are removed; whole-circuit mirror/rotate is blocked.
+  Grading points use the same flag.
+- Undo history starts empty after `init`.
+- Upstream fix: `CircuitXMLDeserializer` skips parts it can't create instead of
+  crashing.
+- Removed the third-party Dropbox script from `circuitjs.html` (its menu item is
+  hidden).
+- `serve.json`: `Content-Security-Policy: frame-ancestors` for the same hosts.
+- Dev page `ts/harness.html` (not in `dist/`) plays the host to exercise the
+  protocol. Tests: `bridge.test.ts` (origin matching).
+
 ### Grading points (roadmap slice L2)
 
 - New part **Grading Point** (`ts/levantate/grading/GradePointElm.ts`, Draw >

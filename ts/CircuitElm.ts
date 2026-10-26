@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-27: lock flag (levLocked). See CHANGES.md.
 
 import { Color } from "./Color";
 import { Point } from "./Point";
@@ -119,6 +120,9 @@ export abstract class CircuitElm implements Editable {
     noDiagonal: boolean = false;
 
     selected: boolean = false;
+    // Levantate Labs: locked by the host (exam starter parts, grading points):
+    // can't be selected, moved, edited, rewired or deleted
+    levLocked: boolean = false;
     // the CompositeElm (subcircuit chip) this element is a child of, if any
     parent: CircuitElm | null = null;
 
@@ -1396,7 +1400,7 @@ export abstract class CircuitElm implements Editable {
     isCreating(): boolean { return CircuitElm.app.mouse.dragElm === this; }
     isSelected(): boolean { return this.selected; }
     canShowValueInScope(v: number): boolean { return false; }
-    setSelected(x: boolean): void { this.selected = x; }
+    setSelected(x: boolean): void { this.selected = x && !this.levLocked; }
 
     selectRect(r: Rectangle, add: boolean): void {
         if (r.intersects(this.boundingBox))

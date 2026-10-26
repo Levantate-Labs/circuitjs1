@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+    Copyright (C) 2026 Levantate Labs. Part of the Levantate Labs fork of CircuitJS1
+    (GNU GPL, version 2 or later). Development page only (not copied into dist/):
+    plays the host's role to exercise docs/bridge-protocol.md.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bridge harness</title>
+<style>
+  body { margin: 0; display: grid; grid-template-columns: 1fr 360px; height: 100vh; font: 13px system-ui, sans-serif; }
+  iframe { width: 100%; height: 100%; border: 0; }
+  aside { border-left: 1px solid #ddd; padding: 12px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+  button { padding: 6px 10px; }
+  pre { flex: 1; background: #f6f4f1; padding: 8px; overflow: auto; white-space: pre-wrap; font: 11px ui-monospace, monospace; margin: 0; }
+  label { display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+<iframe id="sim" src="circuitjs.html"></iframe>
+<aside>
+  <label><input type="checkbox" id="exam" checked> exam</label>
+  <label><input type="checkbox" id="lock" checked> lock starter</label>
+  <label>parts <input id="parts" value="ResistorElm,CapacitorElm" style="flex:1"></label>
+  <button id="init">init (divider + grading points)</button>
+  <button id="export">export</button>
+  <button id="measure">measure all pins</button>
+  <button id="ro">read-only on</button>
+  <button id="rw">read-only off</button>
+  <pre id="log"></pre>
+</aside>
+<script>
+  const sim = document.getElementById('sim');
+  const log = document.getElementById('log');
+  window.received = [];
+  let points = [];
+  const send = (type, extra = {}) => sim.contentWindow.postMessage({ source: 'maestro-sim-host', v: 1, type, id: type + '-' + Date.now(), ...extra }, '*');
+  window.addEventListener('message', (e) => {
+    if (e.source !== sim.contentWindow || e.data?.source !== 'maestro-sim') return;
+    window.received.push(e.data);
+    if (e.data.type === 'gradePoints') points = e.data.points;
+    const shown = { ...e.data };
+    if (typeof shown.circuit === 'string') shown.circuit = shown.circuit.slice(0, 120) + '…';
+    log.textContent = JSON.stringify(shown) + '\n' + log.textContent;
+  });
+  const starter = `$ 1 0.000005 10.20027730826997 50 5 43 5e-11
+v 96 336 96 96 0 0 40 10 0 0 0.5
+r 96 96 256 96 0 1000
+r 256 96 256 336 0 1000
+w 96 336 256 336 0
+4000 256 96 336 48 0 node gp_vout Vout
+4000 176 96 176 40 0 branch gp_ir1 I_R1
+4000 256 216 336 216 0 power gp_pr2 P_R2
+`;
+  window.harness = { send, starter };
+  document.getElementById('init').onclick = () => send('init', {
+    circuit: starter,
+    exam: document.getElementById('exam').checked,
+    lockStarter: document.getElementById('lock').checked,
+    parts: document.getElementById('parts').value.split(',').map(s => s.trim()).filter(Boolean),
+    theme: 'light', dotGrid: true, running: true,
+  });
+  document.getElementById('export').onclick = () => send('export');
+  document.getElementById('measure').onclick = () => send('measure', {
+    points: points.flatMap(p => ['value', 'avg', 'max'].map(m => ({ id: p.id, measure: m }))),
+  });
+  document.getElementById('ro').onclick = () => send('setReadOnly', { value: true });
+  document.getElementById('rw').onclick = () => send('setReadOnly', { value: false });
+</script>
+</body>
+</html>

@@ -16,8 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts). See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); locked parts can't be rewired, split or value-scrolled. See CHANGES.md.
 
+import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
 import { SubcircuitModel } from "./SubcircuitModel";
 import { CircuitElm } from "./CircuitElm";
@@ -566,6 +567,8 @@ export class MouseManager {
     }
 
     private dragPost(x: number, y: number, all: boolean): void {
+	if (Exam.isLocked(this.mouseElm))
+	    return;
 	if (this.draggingPost === -1) {
 	    this.draggingPost =
 		(Graphics.distanceSq(this.mouseElm!.x, this.mouseElm!.y, x, y) >
@@ -586,7 +589,8 @@ export class MouseManager {
 		    p = 1;
 		else
 		    continue;
-		e.movePoint(p, dx, dy);
+		if (!Exam.isLocked(e))
+		    e.movePoint(p, dx, dy);
 	    }
 	} else {
 	    this.mouseElm!.movePoint(this.draggingPost, dx, dy);
@@ -610,7 +614,7 @@ export class MouseManager {
     }
 
     doSplit(ce: CircuitElm | null): void {
-	if (ce == null || !ce.isWireElm())
+	if (ce == null || !ce.isWireElm() || Exam.isLocked(ce))
 	    return;
 	const px = this.snapGrid(this.inverseTransformX(this.menuX));
 	const py = this.snapGrid(this.inverseTransformY(this.menuY));
@@ -1181,6 +1185,8 @@ export class MouseManager {
 	    const sgx = this.snapGrid(gx);
 	    const sgy = this.snapGrid(gy);
 	    for (const ce of this.ui.elmList) {
+		if (Exam.isLocked(ce))
+		    continue;
 		if (this.tempMouseMode === MouseManager.MODE_DRAG_ROW) {
 		    if (ce.y === sgy) { this.dragRowColElms.push(ce); this.dragRowColPosts.push(0); }
 		    if (ce.y2 === sgy) { this.dragRowColElms.push(ce); this.dragRowColPosts.push(1); }
@@ -1408,7 +1414,7 @@ export class MouseManager {
     }
 
     private scrollValues(x: number, y: number, deltay: number): void {
-	if (this.mouseElm != null && !this.sim.modalDialogIsShowing() && this.sim.scopeManager.scopeSelected === -1) {
+	if (this.mouseElm != null && !Exam.isLocked(this.mouseElm) && !this.sim.modalDialogIsShowing() && this.sim.scopeManager.scopeSelected === -1) {
 	    if (this.mouseElm.isResistorElm() || this.mouseElm.isCapacitorElm() || this.mouseElm.isInductorElm()) {
 		CirSim.scrollValuePopup = new ScrollValuePopup(x, y, deltay, this.mouseElm, this.sim);
 	    }
