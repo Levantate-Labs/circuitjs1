@@ -2,21 +2,46 @@
   "cleanUrls": false,
   "directoryListing": false,
   "redirects": [
-    { "source": "/", "destination": "/circuitjs.html", "type": 302 }
+    {
+      "source": "/",
+      "destination": "/workspace/",
+      "type": 302
+    },
+    {
+      "source": "/circuitjs.html",
+      "destination": "/workspace/",
+      "type": 301
+    }
   ],
   "headers": [
     {
       "source": "**/*",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     },
     {
-      "source": "circuitjs/*.@(js|css|woff2)",
+      "source": "workspace/circuitjs/*.@(js|css|woff2)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
+    }
+  ],
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "workspace",
+      "destination": "/workspace/index.html"
     }
   ]
 }

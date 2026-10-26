@@ -1,3 +1,4 @@
+// Modified by Levantate Labs, 2026-10-26: app built into dist/workspace/ (see appDir). See CHANGES.md.
 import { defineConfig, type Plugin } from 'vitest/config'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -54,6 +55,14 @@ function serveWarDir(): Plugin {
 // nothing in the app hardcodes this name.
 const assetsDir = 'circuitjs'
 
+// Levantate Labs, 2026-10-26: the app is served at /workspace/ rather than
+// /circuitjs.html. The build goes to dist/<appDir>/ with the page renamed to
+// index.html; dist/ itself only holds hosting config (serve.json etc.).
+// Everything in the app is page- or script-relative, so only this changes.
+const appDir = 'workspace'
+const distRoot = 'dist'
+const outDir = `${distRoot}/${appDir}`
+
 // After the normal build, copies circuits/, locale/, images/, setuplist.txt,
 // and font/ (the last one nested under ts/public/circuitjs/ already, since
 // it's referenced via hardcoded "circuitjs/font/..." hrefs in circuitjs.html
@@ -66,16 +75,25 @@ function copyPublicAssets(): Plugin {
   return {
     name: 'copy-public-assets',
     apply: 'build',
+    // start from an empty dist/ so files from the old flat layout don't linger
+    buildStart() {
+      fs.rmSync(path.join(tsRoot, distRoot), { recursive: true, force: true })
+    },
     closeBundle() {
-      const nested = path.join(tsRoot, 'dist', assetsDir)
+      const out = path.join(tsRoot, outDir)
+      const nested = path.join(out, assetsDir)
       for (const name of ['circuits', 'locale', 'images']) {
         fs.cpSync(path.join(publicDir, name), path.join(nested, name), { recursive: true })
       }
       fs.cpSync(path.join(publicDir, 'circuitjs', 'font'), path.join(nested, 'font'), { recursive: true })
       fs.cpSync(path.join(publicDir, 'setuplist.txt'), path.join(nested, 'setuplist.txt'))
       for (const page of ['iframe.html', 'jsinterface.html', 'circuitjs/about.html']) {
-        fs.cpSync(path.join(tsRoot, page), path.join(tsRoot, 'dist', page))
+        fs.cpSync(path.join(tsRoot, page), path.join(out, page))
       }
+      // serve the app as the directory index: /workspace/
+      fs.renameSync(path.join(out, 'circuitjs.html'), path.join(out, 'index.html'))
+      const demo = path.join(out, 'jsinterface.html')
+      fs.writeFileSync(demo, fs.readFileSync(demo, 'utf8').replace('circuitjs.html', 'index.html'))
     }
   }
 }
@@ -89,6 +107,8 @@ export default defineConfig({
     open: true
   },
   build: {
+    outDir,
+    emptyOutDir: true,
     assetsDir,
     copyPublicDir: false,
     rolldownOptions: {

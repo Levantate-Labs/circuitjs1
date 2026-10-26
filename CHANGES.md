@@ -48,6 +48,11 @@ License, version 2 or (at your option) any later version.
 - `ts/package.json`: `start` script serves `dist/` with `serve` (MIT) on
   `$PORT`, `postbuild` copies `ts/serve.json` into `dist/`, `engines.node` set to
   `>=22.12`. New `ts/serve.json` and `DEPLOY.md` (Railway settings).
+- `ts/vite.config.ts`: the app is built into `dist/workspace/` with the page
+  renamed to `index.html`, so it is served at `/workspace/`; `dist/` is emptied
+  at the start of each build. `jsinterface.html` (demo) points at
+  `index.html`. `serve.json` redirects `/`, `/workspace` and `/circuitjs.html`
+  to `/workspace/`.
 
 ### Waveform drawing
 
