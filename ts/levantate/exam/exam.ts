@@ -29,6 +29,17 @@ const EMBEDDED_BLOCKED_ITEMS = new Set([
     "print", "recover", "newwindow", "save", "saveas",
 ]);
 
+// identifies a part by type, position and (for grading points) id
+export function lockKey(ce: any): string {
+    return [ce.constructor?.name, ce.x, ce.y, ce.x2, ce.y2, ce.pointId ?? ""].join("|");
+}
+
+function lockOne(ce: any, deleteSliders: (ce: any) => void): void {
+    ce.levLocked = true;
+    ce.setSelected?.(false);
+    deleteSliders(ce);   // a starter part's slider would change its value
+}
+
 export const Exam = {
     // running inside a host page (set by the bridge's init): File menu trimmed
     embedded: false,
@@ -59,6 +70,27 @@ export const Exam = {
 
     isLocked(elm: unknown): boolean {
         return !!(elm as any)?.levLocked;
+    },
+
+    // The locked starter parts, by lockKey(). Undo and redo rebuild the circuit
+    // from a saved copy, which doesn't record locks, so they are put back from
+    // here. (Locked parts can't move or change, so their keys stay valid.)
+    lockedKeys: new Set<string>(),
+
+    lockStarter(elms: any[], deleteSliders: (ce: any) => void): void {
+        this.lockedKeys.clear();
+        for (const ce of elms) {
+            this.lockedKeys.add(lockKey(ce));
+            lockOne(ce, deleteSliders);
+        }
+    },
+
+    relock(elms: any[], deleteSliders: (ce: any) => void): void {
+        if (this.lockedKeys.size === 0)
+            return;
+        for (const ce of elms)
+            if (this.lockedKeys.has(lockKey(ce)))
+                lockOne(ce, deleteSliders);
     },
 
     // true when an exam blocks this menu command

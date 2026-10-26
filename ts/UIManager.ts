@@ -507,6 +507,7 @@ export class UIManager {
     help: HelpPanel | null = null;            // Levantate Labs (levantate/help/helpPanel.ts)
     tour: Tour | null = null;                 // Levantate Labs (levantate/help/tour.ts)
     tourAllowed = true;                       // URL parameter tour=0 turns the first-run tour off
+    compactBar = false;                       // exams: no toolbar row, the dock has the tools
 
     layoutPanel: HTMLElement;
     verticalPanel: HTMLElement;
@@ -899,7 +900,8 @@ export class UIManager {
             GroundElm: tb.groundIcon, SwitchElm: tb.switchIcon, OpAmpElm: tb.opAmpBotIcon,
         };
         this.dock = new ToolDock({
-            enabled: () => this.menus.dockCheckItem.getState() && this.menus.toolbarCheckItem.getState(),
+            enabled: () => this.dockShown(),
+            historyButtons: () => !this.menus.toolbarCheckItem.getState(),
             canvasHeight: () => this.canvasHeight,
             circuitAreaHeight: () => this.app.circuitArea.height,
             mouseMode: () => this.mouse.mouseMode,
@@ -1115,7 +1117,7 @@ export class UIManager {
             cheight -= h;
         }
         // Levantate Labs: keep the circuit clear of the floating tool dock
-        if (this.dock != null && this.menus.dockCheckItem.getState() && this.menus.toolbarCheckItem.getState())
+        if (this.dockShown())
             cheight -= 64;
 
         if (bounds != null)
@@ -1724,6 +1726,24 @@ export class UIManager {
     }
 
     enableItems(): void {
+    }
+
+    // Levantate Labs: the tool dock shows with the toolbar, or in its place in
+    // the compact bar; never while the circuit can't be edited
+    dockShown(): boolean {
+        return this.dock != null && this.menus.dockCheckItem.getState() && !this.isReadOnly() &&
+            (this.menus.toolbarCheckItem.getState() || this.compactBar);
+    }
+
+    // Levantate Labs: compact top bar (exams): just the menu bar; the toolbar
+    // row's tools are in the dock (with undo/redo) and the zoom pill
+    setCompactBar(on: boolean): void {
+        this.compactBar = on;
+        document.body.classList.toggle("lvCompactBar", on);
+        this.menus.toolbarCheckItem.setState(!on);
+        this.setToolbar();
+        this.centerCircuit();
+        this.repaint();
     }
 
     setToolbar(): void {

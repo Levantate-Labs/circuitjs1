@@ -16,6 +16,7 @@ import { Locale } from "../../Locale";
 
 interface DockHost {
     enabled(): boolean;
+    historyButtons(): boolean;                // undo/redo here (when the toolbar row is hidden)
     canvasHeight(): number;
     circuitAreaHeight(): number;
     mouseMode(): number;
@@ -34,6 +35,8 @@ interface DockHost {
 const ICONS = {
     select: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linejoin='round'><path d='M5 3l14 8-6 2-3 6z'/></svg>",
     hand: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M8 13V5.5a1.5 1.5 0 013 0V12m0-6.5V4a1.5 1.5 0 013 0v8m0-6a1.5 1.5 0 013 0v7m0-4a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-1.5a6 6 0 01-4.6-2.2L4 15.6a1.5 1.5 0 012.3-1.9L8 15.5'/></svg>",
+    undo: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 14L4 9l5-5'/><path d='M4 9h10.5a5.5 5.5 0 010 11H11'/></svg>",
+    redo: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 14l5-5-5-5'/><path d='M20 9H9.5a5.5 5.5 0 000 11H13'/></svg>",
     more: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round'><circle cx='10.5' cy='10.5' r='5.5'/><path d='M15 15l5 5'/><path d='M10.5 8v5M8 10.5h5'/></svg>",
     pin: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0113 0C18.5 15.4 12 21 12 21z'/><circle cx='12' cy='10.5' r='2.2'/></svg>",
 };
@@ -46,6 +49,7 @@ const PARTS = [
 export class ToolDock {
     private readonly el: HTMLElement;
     private readonly buttons: { el: HTMLElement; active: () => boolean }[] = [];
+    private readonly history: HTMLElement[] = [];
 
     constructor(private readonly host: DockHost, container: HTMLElement) {
         this.el = document.createElement("div");
@@ -53,6 +57,12 @@ export class ToolDock {
         this.el.setAttribute("role", "toolbar");
         this.el.setAttribute("aria-label", Locale.LS("Tools"));
 
+        // undo / redo, shown only when the toolbar row (which has them) is hidden
+        const mod = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+";
+        this.history.push(
+            this.addButton(ICONS.undo, Locale.LS("Undo"), mod + "Z", () => host.run("edit", "undo"), () => false),
+            this.addButton(ICONS.redo, Locale.LS("Redo"), mod + "Y", () => host.run("edit", "redo"), () => false),
+            this.addSeparator());
         this.addButton(ICONS.select, Locale.LS("Select"), "Esc",
             () => host.run("main", "Select"), () => host.mouseMode() === host.modeSelect);
         this.addButton(ICONS.hand, Locale.LS("Hand: drag to pan"), "Space",
@@ -102,10 +112,11 @@ export class ToolDock {
         return b;
     }
 
-    private addSeparator(): void {
+    private addSeparator(): HTMLElement {
         const s = document.createElement("span");
         s.className = "toolDockSep";
         this.el.appendChild(s);
+        return s;
     }
 
     // Called once per frame: position above the scopes and mark the active tool.
@@ -116,6 +127,9 @@ export class ToolDock {
         if (!on)
             return;
         this.el.style.bottom = (this.host.canvasHeight() - this.host.circuitAreaHeight() + 14) + "px";
+        const history = this.host.historyButtons();
+        for (const h of this.history)
+            h.classList.toggle("lvHidden", !history);
         for (const b of this.buttons) {
             const a = b.active();
             b.el.classList.toggle("active", a);

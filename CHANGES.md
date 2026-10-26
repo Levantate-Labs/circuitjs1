@@ -184,6 +184,20 @@ License, version 2 or (at your option) any later version.
   (locked) pins exist. A student who could add one could give it a checked
   pin's id and choose what it measures.
 
+### Compact exam top bar (roadmap slice L8) and undo in exams
+
+- Exams open with a compact top bar: only the menu bar, no toolbar row. Its
+  tools are already in the tool dock and the zoom pill; the dock gains Undo and
+  Redo while the toolbar row is hidden (`levantate/canvas/dock.ts`,
+  `UIManager.setCompactBar`). `init.compact` overrides it (default: on in
+  exams). The dock is hidden whenever the circuit is read-only.
+- Fix: in an exam, undo and redo rebuilt the circuit through the part
+  allow-list, so starter parts that aren't on the list (and grading points)
+  disappeared, and the rest came back unlocked. Restoring a saved copy now
+  skips the allow-list, and locked starter parts are re-locked by type,
+  position and id (`Exam.lockStarter` / `Exam.relock`, `UndoManager.ts`).
+  Tests: `exam.test.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

@@ -173,13 +173,10 @@ export class Bridge {
                 return;
             }
         }
-        if (msg.lockStarter) {
-            for (const ce of app.elmList) {
-                ce.levLocked = true;
-                ce.setSelected(false);
-                app.deleteSliders(ce);   // a starter part's slider would change its value
-            }
-        }
+        if (msg.lockStarter)
+            Exam.lockStarter(app.elmList, (ce) => app.deleteSliders(ce));
+        else
+            Exam.lockedKeys.clear();
         Exam.enforcing = true;
 
         if (typeof msg.theme === "string")
@@ -189,6 +186,10 @@ export class Bridge {
         app.menus.noEditCheckItem.setState(!!msg.readOnly);
         if (typeof msg.running === "boolean")
             app.setSimRunning(msg.running);
+        // compact top bar: on in exams unless the host says otherwise
+        const compact = typeof msg.compact === "boolean" ? msg.compact : !!msg.exam;
+        if (compact !== app.ui.compactBar)
+            app.ui.setCompactBar(compact);
 
         // undo can't go back past the host's starter circuit
         app.undoManager.undoStack.length = 0;

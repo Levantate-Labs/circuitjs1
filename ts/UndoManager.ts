@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: no recovery copy in local storage during exams. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: no recovery copy in local storage during exams; 2026-10-28: undo/redo keep the starter's parts and locks in exams. See CHANGES.md.
 
 import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
@@ -88,7 +88,17 @@ export class UndoManager {
     }
 
     loadUndoItem(ui: UndoItem): void {
-        this.sim.loader.readCircuit(ui.dump, CircuitLoader.RC_NO_CENTER);
+        // Levantate Labs: a saved copy of the circuit is restored as it was; the
+        // exam's part allow-list only limits parts the student adds (it would
+        // drop the starter's own parts here), and starter locks are put back
+        const enforcing = Exam.enforcing;
+        Exam.enforcing = false;
+        try {
+            this.sim.loader.readCircuit(ui.dump, CircuitLoader.RC_NO_CENTER);
+        } finally {
+            Exam.enforcing = enforcing;
+        }
+        Exam.relock(this.sim.elmList, (ce) => this.sim.deleteSliders(ce));
         this.sim.transform[0] = this.sim.transform[3] = ui.scale;
         this.sim.transform[4] = ui.transform4;
         this.sim.transform[5] = ui.transform5;
