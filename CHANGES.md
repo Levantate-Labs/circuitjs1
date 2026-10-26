@@ -110,6 +110,24 @@ License, version 2 or (at your option) any later version.
 - Hooks in `UIManager.ts` (button, overlay drawing, ending the freeze);
   `maestro.css` styles and `--info` colour tokens. Tests: `freeze.test.ts`.
 
+### Properties panel (roadmap slice L8b)
+
+- New `ts/levantate/canvas/properties.ts`: a part's editor is a panel floating
+  in the top-right of the canvas (under the zoom pill, clear of the tool dock)
+  instead of a dialog beside the side panel. It is titled with the part's name
+  and has a close button; Esc closes it and it can still be dragged.
+- Edits apply as soon as a field changes (Enter, leaving the field, the −/+
+  steppers, choices and checkboxes), so there is no Apply/OK/Cancel row; opening
+  the panel is one undo step. A value that doesn't parse is outlined in red
+  instead of being ignored silently.
+- A **Live** section pinned to the bottom of the panel shows the part's
+  readings (current, voltage, power, and whatever else the part reports) as the
+  simulation runs.
+- The part being edited keeps its highlight on the canvas.
+- Hooks: `EditDialog.ts` (panel mode for circuit parts; editors for models and
+  options are unchanged dialogs), `UIManager.ts` (live update, highlight).
+  Tests: `properties.test.ts`.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

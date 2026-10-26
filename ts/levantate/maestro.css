@@ -933,3 +933,140 @@ body.lvDock .toolbarSepParts { display: none !important; }
 }
 
 .freezeResume:hover { background: var(--primary); filter: brightness(1.05); }
+
+/* ---- Properties panel (levantate/canvas/properties.ts) ---- */
+
+dialog.circuitDialog.propsPanel {
+    width: 264px;
+    max-width: calc(100vw - 32px);
+    padding: 12px 14px 14px;
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    font-size: 13px;
+}
+
+.propsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 -4px 10px 0;
+    cursor: grab;
+}
+
+.propsPanel .propsHeader > h3 {
+    margin: 0 !important;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.circuitDialog .propsClose {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.circuitDialog .propsClose:hover { background: var(--surface); color: var(--text-strong); }
+
+/* one column of fields filling the panel */
+.propsPanel > div > div[style*="display: flex"] { flex-direction: column; gap: 0 !important; }
+.propsPanel > div > div > div { min-width: 0 !important; width: 100%; gap: 4px !important; }
+
+.propsPanel label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.propsPanel label:has(input[type="checkbox"]) {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.propsPanel input[type="text"],
+.propsPanel select,
+.propsPanel textarea {
+    width: 100% !important;
+    min-width: 0;
+    height: 32px;
+    padding: 5px 9px;
+    font-variant-numeric: tabular-nums;
+}
+
+.propsPanel textarea { height: auto; }
+
+/* value stepper: [−][ value ][+] as one control */
+.propsPanel div:has(> button + input + button) { gap: 0 !important; }
+
+.propsPanel div:has(> button + input + button) > input {
+    border-radius: 0;
+    text-align: center;
+}
+
+.circuitDialog.propsPanel div:has(> button + input + button) > button {
+    flex: none;
+    width: 32px !important;
+    height: 32px;
+    padding: 0;
+    font-size: 16px;
+    background: var(--surface);
+}
+
+.circuitDialog.propsPanel div:has(> button + input + button) > button:first-child { border-radius: var(--r-md) 0 0 var(--r-md); border-right: 0; }
+.circuitDialog.propsPanel div:has(> button + input + button) > button:last-child  { border-radius: 0 var(--r-md) var(--r-md) 0; border-left: 0; }
+
+.propsLive {
+    position: sticky;
+    bottom: -14px;           /* the panel's bottom padding */
+    margin: 14px -14px -14px;
+    padding: 10px 14px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--card);
+}
+
+.propsLiveTitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.propsLiveTitle::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.propsLive dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3px 12px;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.propsLive dt { color: var(--text-muted); }
+.propsLive dd { margin: 0; text-align: right; font-weight: 600; color: var(--text-strong); }
+.propsLive dd.propsNote { grid-column: 1 / -1; text-align: left; font-weight: 500; color: var(--text-muted); }
+
+.circuitDialog input.lvInvalid,
+.circuitDialog input.lvInvalid:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px var(--error-tint);
+}

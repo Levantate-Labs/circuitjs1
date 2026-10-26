@@ -26,6 +26,11 @@ import type { Editable } from "./Editable";
 import { EditInfo } from "./EditInfo";
 import { Locale } from "./Locale";
 import { parseFloatStrict } from "./NumberParse";
+import { PropsPanel } from "./levantate/canvas/properties";
+
+// Modified by Levantate Labs, 2026-10-28: part editors are a floating properties
+// panel that applies edits as you make them and shows live values
+// (levantate/canvas/properties.ts). See CHANGES.md.
 
 const ROOT2 = 1.41421356237309504880;
 
@@ -52,7 +57,8 @@ export class EditDialog extends Dialog {
     private activeColCount: number = 0;
     private firstInput: HTMLInputElement | HTMLTextAreaElement | null = null;
     private firstInputNumeric: boolean = false;
-    protected applyButton: HTMLButtonElement;
+    protected applyButton!: HTMLButtonElement;
+    panel: PropsPanel | null = null;   // Levantate Labs: set for circuit parts
 
     constructor(ce: Editable, f: CirSim) {
         super();
@@ -95,8 +101,15 @@ export class EditDialog extends Dialog {
 
         this.activeCol = this.addColumn();
 
+        // Levantate Labs: parts get the floating panel, which applies edits as
+        // they're made, so it needs no Apply/OK/Cancel row
+        const asPanel = ce instanceof CircuitElm;
+        if (asPanel)
+            this.panel = new PropsPanel(this.dialogEl, titleEl, ce as CircuitElm, () => this.closeDialog());
+
         this.buildDialog();
 
+        if (!asPanel) {
         // Buttons row
         const btnRow = document.createElement("div");
         btnRow.style.cssText = "display:flex;justify-content:space-between;margin-top:10px;gap:6px;";
@@ -117,6 +130,7 @@ export class EditDialog extends Dialog {
         cancelBtn.textContent = Locale.LS("Cancel");
         cancelBtn.onclick = () => this.closeDialog();
         btnRow.appendChild(cancelBtn);
+        }
 
         // Focus first text input after the dialog opens
         if (this.firstInput !== null) {
@@ -219,6 +233,7 @@ export class EditDialog extends Dialog {
                 ta.rows = 4;
                 ta.cols = 40;
                 ei.textArea.element = ta;
+                this.applyOnChange(ta, null);
                 if (this.firstInput === null)
                     this.firstInput = ta;
                 this.activeCol.appendChild(ta);
@@ -233,6 +248,7 @@ export class EditDialog extends Dialog {
                 inp.type = "text";
                 inp.style.width = "180px";
                 ei.textf = inp;
+                this.applyOnChange(inp, ei.text === null ? ei : null);
                 if (this.firstInput === null) {
                     this.firstInput = inp;
                     this.firstInputNumeric = (ei.text === null);
@@ -337,6 +353,26 @@ export class EditDialog extends Dialog {
         // just update the displayed text, like typing a new value would; actually committing
         // it to the element happens on Apply/OK like normal, so Cancel still works correctly
         (ei.textf as HTMLInputElement).value = EditDialog.unitStringVal(ei, next);
+        if (this.panel != null)
+            this.apply();
+    }
+
+    // Levantate Labs: in the properties panel a field applies when it changes
+    // (Enter, leaving the field, or picking a colour)
+    // (a value field that doesn't parse is marked rather than silently ignored)
+    private applyOnChange(el: HTMLInputElement | HTMLTextAreaElement, numeric: EditInfo | null): void {
+        el.addEventListener("change", () => {
+            if (this.panel == null || !this.dialogEl.open)
+                return;
+            let ok = true;
+            if (numeric != null) {
+                try { this.parseUnitsEi(numeric); } catch { ok = false; }
+            }
+            el.classList.toggle("lvInvalid", !ok);
+            el.setAttribute("aria-invalid", String(!ok));
+            if (ok)
+                this.apply();
+        });
     }
 
     // step to the next/previous value (in direction dir) in the E12 preferred-value series,
@@ -519,12 +555,17 @@ export class EditDialog extends Dialog {
             super.show();
             return;
         }
+        if (this.panel != null && this.cframe.ui?.cv != null) {
+            this.panel.position(this.cframe.ui.cv.getBoundingClientRect(), window.innerWidth,
+                                this.cframe.circuitArea.height - 76);   // (clear of the tool dock)
+        } else {
         this.dialogEl.style.position = "fixed";
         this.dialogEl.style.margin = "0";
         this.dialogEl.style.top = topOffset + "px";
         this.dialogEl.style.left = "auto";
         // dock to the left of the element-picker sidebar, not on top of it
         this.dialogEl.style.right = (UIManager.VERTICALPANELWIDTH + 16) + "px";
+        }
         this.dialogEl.show();
     }
 

@@ -64,7 +64,8 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 
 // Modified by Levantate Labs, 2026-10-26: Maestro theme (palette, fonts, sliders,
 // side panel, run/stop button), batched drawing. See CHANGES.md.
-// Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay.
+// Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
+// values in the properties panel.
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -1246,6 +1247,10 @@ export class UIManager {
         if (hovered != null && !hovered.isSelected() && this.mouse.selectedArea == null &&
                 this.mouse.tempMouseMode === MouseManager.MODE_SELECT && this.mouse.dragElm == null)
             drawHoverHalo(this.cvcontext, hovered, this.app.transform[0]);
+        // Levantate Labs: the part whose properties panel is open stays highlighted
+        const edited = CirSim.editDialog?.panel != null ? CirSim.editDialog.elm : null;
+        if (edited != null && edited !== hovered && this.elmList.includes(edited))
+            drawHoverHalo(this.cvcontext, edited, this.app.transform[0]);
 
         perfmon.startContext("elm.draw()");
         try {
@@ -1367,6 +1372,7 @@ export class UIManager {
         CanvasNavigation.instance?.afterPaint();
         this.minimap?.update();
         this.dock?.update();
+        CirSim.editDialog?.panel?.update();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
             stopHighlightElm.setMouseElm(false);
