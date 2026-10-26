@@ -45,7 +45,13 @@ export const Exam = {
     onIntegrity: null as ((event: string, detail?: string) => void) | null,
 
     isPartAllowed(className: string): boolean {
-        if (!this.enforcing || this.allowedParts == null)
+        if (!this.enforcing)
+            return true;
+        // grading points come only from the question: a student who could add
+        // one could give it a checked point's id and choose what it measures
+        if (this.active && className === "GradePointElm")
+            return false;
+        if (this.allowedParts == null)
             return true;
         const base = className.startsWith("SubcircuitElm:") ? "SubcircuitElm" : className;
         return ALWAYS_ALLOWED.has(base) || this.allowedParts.has(base);

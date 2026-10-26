@@ -179,6 +179,10 @@ License, version 2 or (at your option) any later version.
   circuit and returns the runner's result. `ts/grader/Dockerfile` builds it on
   the Playwright image; `playwright-core` (Apache-2.0) added as a dependency.
   API and deployment: `docs/grader-service.md`. Tests: `runner.test.ts`.
+- Exam mode (`levantate/exam/exam.ts`): grading points can no longer be added
+  or pasted, whatever the part allow-list says; only the question's own
+  (locked) pins exist. A student who could add one could give it a checked
+  pin's id and choose what it measures.
 
 ## 2026-10-27
 
