@@ -6,6 +6,13 @@
   <em>Electronic Circuit Simulator in the Browser</em>
 </p>
 
+> **Levantate Labs fork.** This is a modified version of CircuitJS1, maintained by
+> Levantate Labs for build-a-circuit questions in online assessments (exam mode,
+> part allowlists, an embedding bridge and UI changes). Changes are listed in
+> [CHANGES.md](CHANGES.md). Like the original, this fork is free software under the
+> GNU General Public License, version 2 or (at your option) any later version; see
+> [COPYING.txt](COPYING.txt). Upstream: https://github.com/pfalstad/circuitjs1
+
 ## Introduction
 
 CircuitJS1 is an electronic circuit simulator that runs in the browser. It was originally written by Paul Falstad as a Java Applet. It was adapted by Iain Sharp to run in the browser using GWT.
