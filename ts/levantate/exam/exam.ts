@@ -92,8 +92,6 @@ interface ExamUIRefs {
     // items that only make sense outside exams (e.g. Options > Disable Editing,
     // which would let a student unlock a submitted circuit)
     examHidden: (HTMLElement | null)[];
-    // the File menu's About item: the only File entry left when embedded
-    fileAbout: HTMLElement | null;
     onAbout: () => void;
 }
 
@@ -102,17 +100,14 @@ let aboutLink: HTMLElement | null = null;
 // Hide what an exam doesn't allow. Safe to call again when the settings change.
 export function applyExamUI(refs: ExamUIRefs): void {
     const examOn = Exam.active;
-    for (const key of ["file", "tools", "circuits"])
+    // inside a host page the File menu goes entirely (the host saves and loads
+    // circuits); exams also drop Tools and the example circuits
+    refs.topItems.get("file")?.classList.toggle("lvHidden", examOn || Exam.embedded);
+    for (const key of ["tools", "circuits"])
         refs.topItems.get(key)?.classList.toggle("lvHidden", examOn);
     for (const el of refs.examHidden)
         el?.classList.toggle("lvHidden", examOn);
 
-    // embedded (not in an exam): the File menu keeps only About
-    const fileMenu = refs.topItems.get("file")?.querySelector(":scope > .menuDropdown");
-    if (fileMenu != null) {
-        for (const el of Array.from(fileMenu.children) as HTMLElement[])
-            el.classList.toggle("lvHidden", Exam.embedded && el !== refs.fileAbout);
-    }
 
     // parts not in the allow-list disappear from the Draw menu and the toolbar
     refs.mainMenuItems.forEach((item, i) => {
@@ -129,9 +124,10 @@ export function applyExamUI(refs: ExamUIRefs): void {
         li.classList.toggle("lvHidden", visible === 0);
     }
 
-    // the File menu (with About) is hidden in exams, so keep an About / licence
-    // link in the side panel (GPLv2 section 2(c))
-    if (examOn && aboutLink == null) {
+    // the File menu (with About) is hidden when embedded, so keep an About /
+    // licence link in the side panel (GPLv2 section 2(c))
+    const needAboutLink = examOn || Exam.embedded;
+    if (needAboutLink && aboutLink == null) {
         const b = document.createElement("button");
         b.type = "button";
         aboutLink = b;
@@ -140,5 +136,5 @@ export function applyExamUI(refs: ExamUIRefs): void {
         aboutLink.addEventListener("click", refs.onAbout);
         refs.sidePanel.appendChild(aboutLink);
     }
-    aboutLink?.classList.toggle("lvHidden", !examOn);
+    aboutLink?.classList.toggle("lvHidden", !needAboutLink);
 }

@@ -74,9 +74,10 @@ License, version 2 or (at your option) any later version.
   speed is unchanged.
 - **Scope labels** (`ScopeOverlays.ts`): drawn with a halo in the card colour so
   traces underneath don't make them unreadable.
-- **Embedded in a host page** (any `init`, not only exams): the File menu shows
-  only About, and import/export/print/recovery commands and their shortcuts are
-  blocked (the host saves circuits). Upstream's "(saved)" status and the empty
+- **Embedded in a host page** (any `init`, not only exams): the File menu is
+  hidden entirely and import/export/print/recovery commands and their shortcuts
+  are blocked (the host saves circuits); the "About & licence" link in the side
+  panel keeps the GPL notice reachable. Upstream's "(saved)" status and the empty
   "Current Circuit:" heading are hidden.
 - Toast for blocked actions reads "Not available here".
 - Harness: an empty parts box sends `null` (every part), not `[]` (wires only).
