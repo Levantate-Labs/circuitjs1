@@ -41,6 +41,7 @@ import { MyCommand } from "./MyCommand";
 import { parseIntStrict, parseFloatStrict } from "./NumberParse";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
 import { Theme } from "./levantate/theme";
+import { CanvasNavigation } from "./levantate/canvas/navigation";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -841,6 +842,7 @@ export class UIManager {
 
         this.app.mouse = this.mouse = new MouseManager(this.app, this);
         this.mouse.register(this.cv);
+        CanvasNavigation.instance?.mountZoomPill(this.canvasWrapper);
         this.mouse.enableDisableMenuItems();
         this.setiFrameHeight();
 
@@ -1246,6 +1248,7 @@ export class UIManager {
         g.setColor(Color.white);
 
         perfmon.stopContext(); // graphics
+        CanvasNavigation.instance?.afterPaint();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
             stopHighlightElm.setMouseElm(false);

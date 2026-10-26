@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts). See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { CircuitLoader } from "./CircuitLoader";
@@ -41,6 +42,7 @@ import "./GetCircuitAsSubcircuit";
 import { Scope } from "./Scope";
 import { ScopeElm } from "./ScopeElm";
 import { parseIntStrict } from "./NumberParse";
+import { CanvasNavigation } from "./levantate/canvas/navigation";
 
 export class CommandManager {
 
@@ -194,12 +196,13 @@ export class CommandManager {
             (this.app.scopeManager as any).combineAll?.();
         if (item == "separateAll")
             (this.app.scopeManager as any).separateAll?.();
+        // zoom commands step through preset levels around the centre (CanvasNavigation)
         if (item == "zoomin")
-            this.app.mouse.zoomCircuit(20, true);
+            CanvasNavigation.instance?.zoomStep(1);
         if (item == "zoomout")
-            this.app.mouse.zoomCircuit(-20, true);
+            CanvasNavigation.instance?.zoomStep(-1);
         if (item == "zoom100")
-            this.app.mouse.setCircuitScale(1, true);
+            CanvasNavigation.instance?.zoomTo(1);
         if (menu == "elm" && item == "edit")
             this.doEdit(this.app.mouse.menuElm);
         if (item == "delete") {

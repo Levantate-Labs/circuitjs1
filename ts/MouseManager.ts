@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts). See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { SubcircuitModel } from "./SubcircuitModel";
@@ -27,6 +28,7 @@ import { Graphics } from "./Graphics";
 import { Rectangle } from "./Rectangle";
 import { Locale } from "./Locale";
 import { ScrollValuePopup } from "./ScrollValuePopup";
+import { CanvasNavigation } from "./levantate/canvas/navigation";
 
 // mode constants
 export class MouseManager {
@@ -106,6 +108,8 @@ export class MouseManager {
     }
 
     register(canvas: HTMLCanvasElement): void {
+	// Levantate Labs: navigation layer first, so its capture listeners see events before ours
+	CanvasNavigation.install(this.sim, canvas);
 	canvas.addEventListener("mousedown",     (e: MouseEvent) => this.onMouseDown(e));
 	canvas.addEventListener("mousemove",     (e: MouseEvent) => this.onMouseMove(e));
 	canvas.addEventListener("mouseout",      (e: MouseEvent) => this.onMouseOut(e));
@@ -199,7 +203,11 @@ export class MouseManager {
 	    const touch2 = e.touches[e.touches.length - 1];
 	    if (e.touches.length > 1) {
 		const newScale = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
-		this.zoomCircuit(40 * (Math.log(newScale) - Math.log(lastScale)));
+		// pinch zooms by the exact finger-distance ratio, around the pinch midpoint
+		const rect = cv.getBoundingClientRect();
+		CanvasNavigation.instance?.zoomAt(newScale / lastScale,
+		    0.5 * (touch1.clientX + touch2.clientX) - rect.left,
+		    0.5 * (touch1.clientY + touch2.clientY) - rect.top);
 		lastScale = newScale;
 	    }
 	    const midX = 0.5 * (touch1.clientX + touch2.clientX);

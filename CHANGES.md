@@ -54,6 +54,30 @@ License, version 2 or (at your option) any later version.
   `index.html`. `serve.json` redirects `/`, `/workspace` and `/circuitjs.html`
   to `/workspace/`.
 
+### Product name
+
+- The browser tab and page title read **Maestro Circuit Lab** (`ts/levantate/brand.ts`,
+  `CirSim.baseTitle`, `circuitjs.html`). The unused manifest link was removed.
+- `circuitjs/about.html` names the product, states that it is a modified version
+  of CircuitJS1 by Paul Falstad and Iain Sharp under the same licence, and links
+  to this fork's source. All original credits, licence and warranty notices are
+  kept (GPLv2 section 2(c)). The JavaScript API keeps its name
+  (`window.CircuitJS1`) so existing integrations keep working.
+
+### Canvas navigation (Figma-style, phase K1)
+
+- New `ts/levantate/canvas/navigation.ts`, installed in front of `MouseManager`:
+  scroll pans; Ctrl/Cmd+scroll and trackpad pinch zoom towards the cursor;
+  Space+drag and middle-drag pan; Shift+1 zoom to fit, Shift+2 zoom to
+  selection, Ctrl/Cmd+0 / + / − zoom (stopping the browser's page zoom); zoom
+  range 10%–800% (was 20%–250%); zoom pill with menu at the top right of the
+  canvas. Scrolling over a resistor, capacitor or inductor still edits its value
+  unless a pan is in progress. Space no longer switches to Select mode unless the
+  user assigned their own shortcut to it.
+- Hooks: `MouseManager.ts` (install, touch pinch uses the exact finger ratio),
+  `CommandManager.ts` (zoom commands step through preset levels),
+  `UIManager.ts` (mount the pill, update its label each frame).
+
 ### Waveform drawing
 
 - `Scope.ts`: grid lines are collected into two paths (minor, major) and the
