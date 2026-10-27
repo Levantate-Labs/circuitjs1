@@ -57,7 +57,7 @@ Simulator → host:
 | type | fields | effect |
 |---|---|---|
 | `hello` | | Simulator replies `ready` |
-| `init` | `circuit?` (string, XML or legacy text, ≤ 256 KB), `exam?` (bool), `parts?` (string[] of part class names, e.g. `"ResistorElm"`; omit or `null` for all), `lockStarter?` (bool), `readOnly?` (bool), `theme?` (`"light"` \| `"dark"`), `dotGrid?` (bool), `running?` (bool), `tour?` (bool, default true: show the first-run tour once per device; never shown with `readOnly`), `compact?` (bool, default = `exam`: menu bar only, the toolbar row's tools move to the tool dock) | Loads and configures; replies `initialized` |
+| `init` | `circuit?` (string, XML or legacy text, ≤ 256 KB), `exam?` (bool), `parts?` (string[] of part class names, e.g. `"ResistorElm"`; omit or `null` for all), `lockStarter?` (bool), `readOnly?` (bool), `theme?` (`"light"` \| `"dark"`), `dotGrid?` (bool), `running?` (bool), `tour?` (bool, default true: show the first-run tour once per device; never shown with `readOnly`), `compact?` (bool, default = `exam`: menu bar only, the toolbar row's tools move to the tool dock), `instruments?` (bool, default true: the multimeter is available) | Loads and configures; replies `initialized` |
 | `export` | | Replies `exported` with the current circuit |
 | `setReadOnly` | `value` (bool) | Locks or unlocks all editing (e.g. after submit) |
 | `getGradePoints` | | Replies `gradePoints` |

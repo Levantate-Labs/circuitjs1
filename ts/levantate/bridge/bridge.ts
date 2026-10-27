@@ -186,6 +186,10 @@ export class Bridge {
         app.menus.noEditCheckItem.setState(!!msg.readOnly);
         if (typeof msg.running === "boolean")
             app.setSimRunning(msg.running);
+        // instruments (the multimeter): on unless the host turns them off
+        app.ui.instrumentsAllowed = msg.instruments !== false;
+        if (!app.ui.instrumentsAllowed && app.ui.meter?.isOpen())
+            app.ui.meter.setOpen(false);
         // compact top bar: on in exams unless the host says otherwise
         const compact = typeof msg.compact === "boolean" ? msg.compact : !!msg.exam;
         if (compact !== app.ui.compactBar)

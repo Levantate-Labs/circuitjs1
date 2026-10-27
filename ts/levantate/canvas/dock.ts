@@ -17,6 +17,9 @@ import { Locale } from "../../Locale";
 interface DockHost {
     enabled(): boolean;
     historyButtons(): boolean;                // undo/redo here (when the toolbar row is hidden)
+    meterAllowed(): boolean;                  // the host may turn instruments off
+    meterOpen(): boolean;
+    toggleMeter(): void;
     canvasHeight(): number;
     circuitAreaHeight(): number;
     mouseMode(): number;
@@ -37,6 +40,7 @@ const ICONS = {
     hand: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M8 13V5.5a1.5 1.5 0 013 0V12m0-6.5V4a1.5 1.5 0 013 0v8m0-6a1.5 1.5 0 013 0v7m0-4a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-1.5a6 6 0 01-4.6-2.2L4 15.6a1.5 1.5 0 012.3-1.9L8 15.5'/></svg>",
     undo: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 14L4 9l5-5'/><path d='M4 9h10.5a5.5 5.5 0 010 11H11'/></svg>",
     redo: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M15 14l5-5-5-5'/><path d='M20 9H9.5a5.5 5.5 0 000 11H13'/></svg>",
+    meter: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='2.5' width='14' height='19' rx='2.5'/><rect x='8' y='5.5' width='8' height='4' rx='1'/><circle cx='12' cy='15' r='3'/><path d='M12 15l1.6-1.6'/></svg>",
     more: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round'><circle cx='10.5' cy='10.5' r='5.5'/><path d='M15 15l5 5'/><path d='M10.5 8v5M8 10.5h5'/></svg>",
     pin: "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0113 0C18.5 15.4 12 21 12 21z'/><circle cx='12' cy='10.5' r='2.2'/></svg>",
 };
@@ -50,6 +54,7 @@ export class ToolDock {
     private readonly el: HTMLElement;
     private readonly buttons: { el: HTMLElement; active: () => boolean }[] = [];
     private readonly history: HTMLElement[] = [];
+    private readonly meterButton: HTMLElement;
 
     constructor(private readonly host: DockHost, container: HTMLElement) {
         this.el = document.createElement("div");
@@ -87,6 +92,8 @@ export class ToolDock {
 
         this.addButton(ICONS.more, Locale.LS("More parts: search all parts"), "/",
             () => host.run("edit", "search"), () => false);
+        this.meterButton = this.addButton(ICONS.meter, Locale.LS("Multimeter"), null,
+            () => host.toggleMeter(), () => host.meterOpen());
         const pin = this.addButton(ICONS.pin, host.labelFor("GradePointElm"), null,
             () => host.run("main", "GradePointElm"),
             () => host.mouseMode() === host.modeAddElm && host.partMode() === "GradePointElm");
@@ -127,6 +134,7 @@ export class ToolDock {
         if (!on)
             return;
         this.el.style.bottom = (this.host.canvasHeight() - this.host.circuitAreaHeight() + 14) + "px";
+        this.meterButton.classList.toggle("lvHidden", !this.host.meterAllowed());
         const history = this.host.historyButtons();
         for (const h of this.history)
             h.classList.toggle("lvHidden", !history);

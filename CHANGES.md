@@ -214,6 +214,26 @@ License, version 2 or (at your option) any later version.
   seemed to do nothing. Undo and Redo now skip copies identical to the
   current circuit.
 
+### Multimeter (roadmap slice L9)
+
+- New `ts/levantate/instruments/`: a bench multimeter over the canvas, opened
+  from the tool dock. It never changes the circuit, so it works on a test's
+  locked parts.
+  - **Volts (DC/AC):** red and black probe tips with leads from the meter's
+    jacks; drag a tip onto a terminal or anywhere on a wire and it snaps there.
+    Shows red minus black.
+  - **Amps (DC/AC):** a clamp: pick a part and read the current through it.
+  - **Ohms:** the resistance of the part whose two ends the probes are on.
+  - Readings are averaged every simulation step (`CirSim.onTimeStep` feeds it)
+    and refreshed a few times a second. A changing signal is read over whole
+    cycles (`CycleWindow`: from one rising edge to a later one, time-weighted),
+    so values are right at any simulation speed; until the first whole cycle
+    the meter says it is measuring. DC shows the average, AC the RMS of the
+    varying part; auto-ranged to four digits.
+- Bridge: `init.instruments` (default true) lets the host turn instruments off.
+- Help guide: a Multimeter section. Tests: `meterLogic.test.ts`; the e2e test
+  checks the meter is in the exam dock.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

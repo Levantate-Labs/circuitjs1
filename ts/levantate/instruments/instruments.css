@@ -1,0 +1,136 @@
+/*
+    Copyright (C) 2026 Levantate Labs
+
+    This file is part of the Levantate Labs fork of CircuitJS1, distributed under
+    the GNU General Public License, version 2 or (at your option) any later
+    version. See COPYING.txt.
+
+    Instruments (multimeter.ts). Uses the tokens from ../maestro.css.
+*/
+
+.lvMeter {
+    position: absolute;
+    top: 64px;
+    left: 16px;
+    z-index: 6;
+    width: 212px;
+    padding: 0 12px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow-lg);
+    font-size: 12.5px;
+    user-select: none;
+}
+
+.lvMeterHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -4px 6px 0;
+    padding-top: 8px;
+    font-weight: 700;
+    color: var(--text-strong);
+    cursor: grab;
+}
+
+.lvMeterClose {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.lvMeterClose:hover { background: var(--surface); color: var(--text-strong); }
+
+/* the display: dark glass with bright digits, in both themes */
+.lvMeterLcd {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    background: #14130f;
+    color: #e8f6e9;
+    font-variant-numeric: tabular-nums;
+}
+
+.lvMeterDigits {
+    flex: 1;
+    text-align: right;
+    font: 600 26px/1.1 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    letter-spacing: 0.02em;
+}
+
+.lvMeterUnit { min-width: 26px; font-size: 14px; font-weight: 700; }
+.lvMeterMode { min-width: 16px; font-size: 10px; font-weight: 700; color: #9fb7a2; }
+
+.lvMeterModes {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.lvMeterModes > button,
+.lvMeterClamp {
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lvMeterModes > button:hover,
+.lvMeterClamp:hover { background: var(--surface); }
+
+.lvMeterModes > button.on {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--primary-fg);
+}
+
+.lvMeterClamp { width: 100%; margin-top: 8px; font-weight: 600; }
+.lvMeterClamp.on { border-color: var(--info); background: var(--info-tint); color: var(--info); }
+
+.lvMeterHint { margin: 8px 0 0; color: var(--text-muted); line-height: 1.4; }
+
+.lvMeterJacks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.lvMeter.clamp .lvMeterJacks { display: none; }
+
+.lvMeterJack {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.lvMeterJack::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 3px solid currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.lvMeterJack.red::before { color: #e5484d; }
+.lvMeterJack.black::before { color: var(--text-strong); }
+
+.lvMeterPicking canvas { cursor: crosshair !important; }

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing; 2026-10-28: Help panel and tour styles. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing; 2026-10-28: Help panel, tour and instrument styles. See CHANGES.md.
 import { CircuitElm } from "./CircuitElm";
 import { Graphics } from "./Graphics";
 import { Color } from "./Color";
@@ -18,6 +18,7 @@ import "./style.css";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./levantate/maestro.css";
 import "./levantate/help/help.css";
+import "./levantate/instruments/instruments.css";
 
 // used via the global (window.LZString) by CirSim.decompress() and ExportAsUrlDialog
 (window as any).LZString = LZString;

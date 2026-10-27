@@ -54,7 +54,7 @@ describe("embedding protocol", () => {
                 .filter((b) => !b.classList.contains("lvHidden")).map((b) => b.title.split(" (")[0]),
         }));
         expect(ui.toolbar).toBe("none");
-        expect(ui.dock).toEqual(expect.arrayContaining(["Undo", "Redo", "Add Wire", "Add Resistor"]));
+        expect(ui.dock).toEqual(expect.arrayContaining(["Undo", "Redo", "Add Wire", "Add Resistor", "Multimeter"]));
         expect(ui.dock).not.toContain("Add Grading Point");
         expect(ui.dock).not.toContain("Add Capacitor");
     });

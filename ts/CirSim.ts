@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts; part allow-list; installs the embedding bridge; 2026-10-28: starts the first-run tour; installs the grading runner with ?grader=1. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26/27: product name in the browser tab; registers fork-only parts; part allow-list; installs the embedding bridge; 2026-10-28: starts the first-run tour; installs the grading runner with ?grader=1; feeds the multimeter each time step. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -371,6 +371,7 @@ export class CirSim {
 
     onTimeStep(): void {
         this.scopeManager.timeStep();
+        this.ui?.meter?.sample();   // Levantate Labs: the multimeter averages every step
         this.jsInterface?.callTimeStepHook();
     }
 
