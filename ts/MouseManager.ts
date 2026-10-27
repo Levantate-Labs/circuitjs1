@@ -17,7 +17,7 @@
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); locked parts can't be rewired, split or value-scrolled. See CHANGES.md.
-// Modified by Levantate Labs, 2026-10-28: no scope splitter while the graphs are hidden; instruments' output parts can't be hovered or clicked.
+// Modified by Levantate Labs, 2026-10-28: no scope splitter while the graphs are hidden; instruments' output parts can't be hovered or clicked; a scope's gear opens the scope panel.
 
 import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
@@ -1136,7 +1136,11 @@ export class MouseManager {
 	    const s = this.sim.scopeManager.scopeSelected !== -1
 		? this.sim.scopeManager.scopes[this.sim.scopeManager.scopeSelected]
 		: (this.mouseElm as any).elmScope;
-	    s.showProperties();
+	    // Levantate Labs: the gear opens the scope panel (it links to the full dialog)
+	    if (this.ui.scopePanel != null && s.position >= 0)
+		this.ui.scopePanel.open(s);
+	    else
+		s.showProperties();
 	    this.clearSelection();
 	    this.mouseDragging = false;
 	    return;

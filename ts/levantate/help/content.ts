@@ -188,13 +188,21 @@ red (+) and black leads onto terminals or wire ends, set them up, and press <b>O
   <li><b>Right-click a part</b> and choose <b>View in New Scope</b>. A graph of that part
       appears in the strip at the bottom.</li>
   <li><b>Hover a graph</b> to read the value at any moment.</li>
-  <li>Click the <b>gear</b> on a graph to choose what it shows (voltage, current, power),
-      its scale and speed.</li>
+  <li>Click the <b>gear</b> on a graph for its controls, like a bench scope's front panel:
+      <ul>
+        <li><b>Time</b> − / + makes the visible window shorter or longer.</li>
+        <li><b>Trigger</b> Auto or Normal holds a repeating wave still: pick the rising or falling
+            edge and the level it crosses.</li>
+        <li>The <b>Max, Min, P-P, Avg, RMS, Freq, Duty</b> chips show those measurements on the graph.</li>
+        <li><b>Cursors</b> adds two lines, A and B, that you drag along the graph; the panel shows
+            each value, the time between them (Δt), 1/Δt and the difference (ΔV).</li>
+        <li><b>All settings…</b> opens every option, such as what the graph plots and its scale.</li>
+      </ul></li>
 </ol>
 <p>Drag the line above the graphs to make them taller or shorter. The <b>Scopes</b> menu
 stacks or combines all graphs. The graph button in the zoom pill hides the strip when you
 need more room.</p>`,
-        keywords: "scope graph plot oscilloscope waveform time chart gear stack combine",
+        keywords: "scope graph plot oscilloscope waveform time chart gear stack combine trigger cursor timebase measurement frequency rms",
     },
     {
         id: "navigate",

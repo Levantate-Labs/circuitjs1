@@ -242,3 +242,76 @@
 
 .toolDockMenu > button:hover { background: var(--surface); color: var(--text-strong); }
 .toolDockMenuCheck { width: 16px; color: var(--primary); font-weight: 700; text-align: center; }
+
+/* ---- Scope panel ---- */
+
+.lvScopePanel { width: 248px; }
+.lvScopeTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
+
+.lvScopeRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.lvScopeRow > span { width: 52px; color: var(--text-muted); font-weight: 600; flex: none; }
+.lvScopeRow > b { flex: 1; text-align: center; font-variant-numeric: tabular-nums; color: var(--text-strong); }
+
+.lvScopeRow > button,
+.lvSeg > button,
+.lvScopeChips > button,
+.lvScopeMore {
+    height: 28px;
+    min-width: 28px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.lvScopeRow > button:hover,
+.lvSeg > button:hover,
+.lvScopeChips > button:hover,
+.lvScopeMore:hover { background: var(--surface); }
+
+.lvSeg { display: flex; gap: 2px; }
+.lvSeg > button.on,
+.lvScopeChips > button.on { border-color: var(--primary); background: var(--primary); color: var(--primary-fg); }
+.lvSeg.lvDim { opacity: 0.45; pointer-events: none; }
+
+.lvScopeLevel { display: flex; align-items: center; gap: 4px; color: var(--text-muted); }
+.lvScopeLevel > input {
+    box-sizing: border-box;
+    width: 64px;
+    height: 28px;
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font: inherit;
+    text-align: right;
+}
+.lvScopeLevel > input:disabled { opacity: 0.45; }
+
+.lvScopeChips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+
+.lvScopeReadout {
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr;
+    gap: 3px 8px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    font-variant-numeric: tabular-nums;
+}
+.lvScopeReadout > span { color: var(--guide, #d6338f); font-weight: 700; }
+.lvScopeReadout > b { color: var(--text-strong); font-weight: 600; text-align: right; }
+
+.lvScopeMore { width: 100%; margin-top: 8px; color: var(--text-muted); }

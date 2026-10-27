@@ -259,6 +259,20 @@ License, version 2 or (at your option) any later version.
 - `init.instruments: false` closes and hides all three. Help guide section
   renamed Instruments.
 
+### Scope panel (roadmap slice L9)
+
+- New `ts/levantate/instruments/scopePanel.ts`: a docked scope's gear opens a
+  bench-scope front panel instead of the long properties dialog (which stays
+  one click away under "All settings…"; scopes drawn inside the circuit keep
+  the dialog). It shows the scope's name and: the visible time window with
+  − / + (upstream `speedUp` / `slowDown`); the trigger (off / auto / normal,
+  rising or falling edge, level: upstream `ScopeTrigger`); chips for the
+  measurements upstream draws on the graph (max, min, peak-to-peak, average,
+  RMS, frequency, duty cycle); and two cursors, A and B, fixed on screen like a
+  bench scope's, dragged along the graph, with each value, Δt, 1/Δt and ΔV.
+- Hooks: `MouseManager.ts` (the gear), `UIManager.ts` (cursors drawn after the
+  graphs). Help guide: the Graphs section describes the panel.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

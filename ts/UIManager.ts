@@ -53,6 +53,7 @@ import { Tour } from "./levantate/help/tour";
 import { Multimeter } from "./levantate/instruments/multimeter";
 import { FunctionGenerator } from "./levantate/instruments/functionGenerator";
 import { BenchSupply } from "./levantate/instruments/benchSupply";
+import { ScopePanel } from "./levantate/instruments/scopePanel";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -72,7 +73,8 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // side panel, run/stop button), batched drawing. See CHANGES.md.
 // Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
 // values in the properties panel; show/hide the graph strip and side panel; Help
-// panel and first-run tour; instruments (multimeter, function generator, bench supply).
+// panel and first-run tour; instruments (multimeter, function generator, bench supply,
+// scope panel).
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -514,6 +516,7 @@ export class UIManager {
     meter: Multimeter | null = null;          // Levantate Labs (levantate/instruments/)
     generator: FunctionGenerator | null = null;
     supply: BenchSupply | null = null;
+    scopePanel: ScopePanel | null = null;
     instrumentsAllowed = true;                // the host may turn instruments off (init.instruments)
 
     layoutPanel: HTMLElement;
@@ -991,6 +994,14 @@ export class UIManager {
         };
         this.generator = new FunctionGenerator(sources, this.canvasWrapper, this.cv);
         this.supply = new BenchSupply(sources, this.canvasWrapper, this.cv);
+        this.scopePanel = new ScopePanel({
+            canvas: this.cv,
+            container: this.canvasWrapper,
+            scopes: () => this.app.scopeManager.scopes.slice(0, this.app.scopeManager.scopeCount),
+            timeText: (t) => CircuitElm.getTimeText(t),
+            unitText: (plot, v) => plot.getUnitText(v),
+            repaint: () => this.repaint(),
+        });
         this.freeze = new Freeze({
             setRunning: (on) => this.setSimRunning(on),
             timeText: () => CircuitElm.getTimeText(this.app.sim.t),
@@ -1613,6 +1624,8 @@ export class UIManager {
         }
         for (let i = 0; i !== ct; i++)
             this.app.scopeManager.scopes[i].draw(g);
+        if (ct > 0)
+            this.scopePanel?.draw(g);   // Levantate Labs: cursors A/B and the panel's readings
         if (this.mouse.mouseWasOverSplitter) {
             g.setColor(CircuitElm.selectColor);
             g.setLineWidth(4.0);
