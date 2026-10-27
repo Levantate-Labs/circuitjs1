@@ -197,6 +197,9 @@ License, version 2 or (at your option) any later version.
   skips the allow-list, and locked starter parts are re-locked by type,
   position and id (`Exam.lockStarter` / `Exam.relock`, `UndoManager.ts`).
   Tests: `exam.test.ts`.
+- Help guide, "In a test or assignment": grading points can't be added, the
+  dock has Undo/Redo in the compact bar, and answers are marked from readings
+  taken after submitting.
 
 ## 2026-10-27
 

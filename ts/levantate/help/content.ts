@@ -209,11 +209,16 @@ Your choices are remembered on this device.</p>`,
   <li>Parts of a starter circuit may be <b>locked</b>: you can't select, move or change them,
       but you can connect to them.</li>
   <li>Coral pins with labels are <b>grading points</b>, where your circuit is checked.
-      Leave them where they are.</li>
+      They come with the question: you can't move, delete or add them.</li>
+  <li>The toolbar row is hidden to give you more room. Every tool is in the dock at the
+      bottom, which also has <b>Undo</b> and <b>Redo</b> (or ${k("Ctrl", "Z")} / ${k("Ctrl", "Y")}).
+      Undo never removes the question's own parts.</li>
+  <li>After you submit, Maestro runs your circuit for a moment and measures it at the grading
+      points; your marks come from those readings.</li>
 </ul>
 <p class="helpTip">Build the circuit, let it run for a moment, and check the values at the
-grading points before you submit.</p>`,
-        keywords: "exam test assignment question locked grading points submit save allowed parts",
+grading points before you submit. Hover a pin's part or click it to see its readings.</p>`,
+        keywords: "exam test assignment question locked grading points submit save allowed parts undo redo toolbar marks",
     },
     {
         id: "problems",
