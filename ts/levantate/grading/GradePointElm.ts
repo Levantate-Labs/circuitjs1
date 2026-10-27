@@ -112,7 +112,7 @@ export class GradePointElm extends CircuitElm {
         let best: CircuitElm | null = null;
         let bestArea = Infinity;
         for (const ce of list) {
-            if (ce === this || ce.isWireElm() || ce.isGraphicElm() || (ce as any).isGradePointElm?.())
+            if (ce === this || ce.isWireElm() || ce.isGraphicElm() || (ce as any).isGradePointElm?.() || (ce as any).levInstrument)
                 continue;
             if (ce.getPostCount() < 2)
                 continue;

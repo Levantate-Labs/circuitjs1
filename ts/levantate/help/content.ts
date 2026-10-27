@@ -155,11 +155,11 @@ Changing the circuit also ends a freeze, because the labels would be out of date
     },
     {
         id: "meter",
-        title: "Multimeter",
-        summary: "Measure like a bench meter, without changing the circuit.",
+        title: "Instruments",
+        summary: "Multimeter, function generator and power supply.",
         body: `
-<p>Open it with the meter button in the tool dock. It never changes the circuit, so it also
-works on a test's locked parts.</p>
+<p>Open them from the Instruments button in the tool dock. The <b>multimeter</b> never changes
+the circuit, so it also works on a test's locked parts.</p>
 <ul>
   <li><b>V⎓ / V~</b>: drag the red and black probe tips onto two points (a terminal or anywhere on a
       wire). The meter shows red minus black: DC is the average, AC the RMS of the changing part.</li>
@@ -167,8 +167,17 @@ works on a test's locked parts.</p>
   <li><b>Ω</b>: put the probes on the two ends of one part to read its resistance.</li>
 </ul>
 <p>Like a real meter it averages for a moment before showing a value. A changing signal is read
-over whole cycles, so in a slow simulation the first AC reading can take a few seconds.</p>`,
-        keywords: "multimeter meter voltmeter ammeter ohmmeter probe clamp measure voltage current resistance dmm",
+over whole cycles, so in a slow simulation the first AC reading can take a few seconds.</p>
+<p><b>Function generator</b> and <b>power supply</b> are in the same Instruments menu. Drag their
+red (+) and black leads onto terminals or wire ends, set them up, and press <b>Output on</b>:</p>
+<ul>
+  <li>The generator gives a sine, square, triangle or sawtooth wave with the frequency,
+      peak-to-peak amplitude and offset you set, through a 50 Ω output like a lab generator.</li>
+  <li>The supply holds its voltage (<b>CV</b>) until the load would draw more than the current
+      limit, then holds the limit current instead (<b>CC</b>), like a bench supply.</li>
+</ul>
+<p>Instruments are never part of your saved circuit or your answer.</p>`,
+        keywords: "multimeter meter voltmeter ammeter ohmmeter probe clamp measure voltage current resistance dmm function signal generator wave sine square power supply psu bench current limit cv cc instruments",
     },
     {
         id: "graphs",

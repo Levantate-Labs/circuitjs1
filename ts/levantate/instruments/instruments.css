@@ -134,3 +134,111 @@
 .lvMeterJack.black::before { color: var(--text-strong); }
 
 .lvMeterPicking canvas { cursor: crosshair !important; }
+
+/* ---- Source instruments: function generator, bench supply ---- */
+
+.lvInstr {
+    position: absolute;
+    top: 64px;
+    left: 240px;
+    z-index: 6;
+    width: 220px;
+    padding: 0 12px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow-lg);
+    font-size: 12.5px;
+    user-select: none;
+}
+
+.lvInstr.lvPsu { left: 472px; }
+
+.lvInstrField {
+    display: grid;
+    grid-template-columns: 1fr 84px 30px;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.lvInstrField > span { color: var(--text-muted); font-weight: 600; }
+.lvInstrField > em { font-style: normal; color: var(--text-muted); }
+
+.lvInstrField > input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: var(--card);
+    color: var(--text-strong);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    user-select: text;
+}
+
+.lvInstrField > input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+.lvInstrField > input.lvInvalid { border-color: var(--error); }
+
+.lvGenWaves { grid-template-columns: repeat(4, 1fr); font-size: 15px; }
+
+.lvInstrNote { margin: 6px 0 0; font-size: 11px; color: var(--text-muted); }
+
+.lvInstrOutput {
+    width: 100%;
+    height: 30px;
+    margin-top: 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lvInstrOutput.on { border-color: transparent; background: var(--success-tint); color: var(--success); }
+
+.lvPsuLcd { flex-wrap: wrap; }
+.lvPsuLcd .lvPsuV,
+.lvPsuLcd .lvPsuI { font: 600 20px/1.1 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; }
+.lvPsuLcd .lvPsuMode { margin-left: auto; padding: 1px 4px; border-radius: 4px; background: #2a3a2c; color: #9fe0a8; }
+.lvPsuLcd .lvPsuMode.cc { background: #4a2a22; color: #ffb4a0; }
+.lvPsuLcd .lvPsuMode:empty { display: none; }
+
+/* ---- Instruments menu above the dock ---- */
+
+.toolDockMenu {
+    position: absolute;
+    z-index: 7;
+    min-width: 180px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--card);
+    box-shadow: var(--shadow-lg);
+}
+
+.toolDockMenu > button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    height: 32px;
+    padding: 0 10px 0 6px;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.toolDockMenu > button:hover { background: var(--surface); color: var(--text-strong); }
+.toolDockMenuCheck { width: 16px; color: var(--primary); font-weight: 700; text-align: center; }

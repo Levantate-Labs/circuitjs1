@@ -17,9 +17,8 @@ import { Locale } from "../../Locale";
 interface DockHost {
     enabled(): boolean;
     historyButtons(): boolean;                // undo/redo here (when the toolbar row is hidden)
-    meterAllowed(): boolean;                  // the host may turn instruments off
-    meterOpen(): boolean;
-    toggleMeter(): void;
+    instrumentsAllowed(): boolean;            // the host may turn instruments off
+    instruments(): { label: string; open(): boolean; toggle(): void }[];
     canvasHeight(): number;
     circuitAreaHeight(): number;
     mouseMode(): number;
@@ -92,8 +91,9 @@ export class ToolDock {
 
         this.addButton(ICONS.more, Locale.LS("More parts: search all parts"), "/",
             () => host.run("edit", "search"), () => false);
-        this.meterButton = this.addButton(ICONS.meter, Locale.LS("Multimeter"), null,
-            () => host.toggleMeter(), () => host.meterOpen());
+        this.meterButton = this.addButton(ICONS.meter, Locale.LS("Instruments"), null,
+            () => this.toggleMenu(), () => this.menuOpen() || host.instruments().some((i) => i.open()));
+        this.meterButton.setAttribute("aria-haspopup", "menu");
         const pin = this.addButton(ICONS.pin, host.labelFor("GradePointElm"), null,
             () => host.run("main", "GradePointElm"),
             () => host.mouseMode() === host.modeAddElm && host.partMode() === "GradePointElm");
@@ -119,6 +119,51 @@ export class ToolDock {
         return b;
     }
 
+    // ---- instruments menu ----
+
+    private menu: HTMLElement | null = null;
+
+    private menuOpen(): boolean { return this.menu != null; }
+
+    private toggleMenu(): void {
+        if (this.menu != null) {
+            this.closeMenu();
+            return;
+        }
+        const m = document.createElement("div");
+        m.className = "toolDockMenu";
+        m.setAttribute("role", "menu");
+        for (const inst of this.host.instruments()) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.setAttribute("role", "menuitemcheckbox");
+            b.setAttribute("aria-checked", String(inst.open()));
+            b.innerHTML = `<span class="toolDockMenuCheck">${inst.open() ? "✓" : ""}</span>${inst.label}`;
+            b.addEventListener("click", () => {
+                inst.toggle();
+                this.closeMenu();
+            });
+            m.appendChild(b);
+        }
+        this.el.parentElement!.appendChild(m);
+        const r = this.meterButton.getBoundingClientRect(), p = this.el.parentElement!.getBoundingClientRect();
+        m.style.left = Math.max(8, r.left - p.left + r.width / 2 - 90) + "px";
+        m.style.bottom = (p.bottom - r.top + 8) + "px";
+        this.menu = m;
+        setTimeout(() => document.addEventListener("pointerdown", this.outside, true));
+    }
+
+    private readonly outside = (e: Event) => {
+        if (this.menu && !this.menu.contains(e.target as Node) && !this.meterButton.contains(e.target as Node))
+            this.closeMenu();
+    };
+
+    private closeMenu(): void {
+        this.menu?.remove();
+        this.menu = null;
+        document.removeEventListener("pointerdown", this.outside, true);
+    }
+
     private addSeparator(): HTMLElement {
         const s = document.createElement("span");
         s.className = "toolDockSep";
@@ -134,7 +179,9 @@ export class ToolDock {
         if (!on)
             return;
         this.el.style.bottom = (this.host.canvasHeight() - this.host.circuitAreaHeight() + 14) + "px";
-        this.meterButton.classList.toggle("lvHidden", !this.host.meterAllowed());
+        this.meterButton.classList.toggle("lvHidden", !this.host.instrumentsAllowed());
+        if (this.menu != null && !this.host.instrumentsAllowed())
+            this.closeMenu();
         const history = this.host.historyButtons();
         for (const h of this.history)
             h.classList.toggle("lvHidden", !history);

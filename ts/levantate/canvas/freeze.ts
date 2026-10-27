@@ -145,6 +145,7 @@ export function drawFreezeOverlay(ctx: CanvasRenderingContext2D, elms: FreezeElm
     const sx = (x: number) => x * transform[0] + transform[4];
     const sy = (y: number) => y * transform[3] + transform[5];
     const placed: Rect[] = [...avoid];
+    elms = elms.filter((e) => !(e as any).levInstrument);   // instruments' outputs aren't the student's parts
     ctx.save();
     ctx.font = "600 11px 'Plus Jakarta Sans Variable', system-ui, sans-serif";
     ctx.textBaseline = "middle";

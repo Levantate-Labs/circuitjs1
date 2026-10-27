@@ -51,6 +51,8 @@ import { ViewToggles } from "./levantate/canvas/viewToggles";
 import { HelpPanel } from "./levantate/help/helpPanel";
 import { Tour } from "./levantate/help/tour";
 import { Multimeter } from "./levantate/instruments/multimeter";
+import { FunctionGenerator } from "./levantate/instruments/functionGenerator";
+import { BenchSupply } from "./levantate/instruments/benchSupply";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -70,7 +72,7 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // side panel, run/stop button), batched drawing. See CHANGES.md.
 // Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
 // values in the properties panel; show/hide the graph strip and side panel; Help
-// panel and first-run tour; the multimeter.
+// panel and first-run tour; instruments (multimeter, function generator, bench supply).
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -509,7 +511,9 @@ export class UIManager {
     tour: Tour | null = null;                 // Levantate Labs (levantate/help/tour.ts)
     tourAllowed = true;                       // URL parameter tour=0 turns the first-run tour off
     compactBar = false;                       // exams: no toolbar row, the dock has the tools
-    meter: Multimeter | null = null;          // Levantate Labs (levantate/instruments/multimeter.ts)
+    meter: Multimeter | null = null;          // Levantate Labs (levantate/instruments/)
+    generator: FunctionGenerator | null = null;
+    supply: BenchSupply | null = null;
     instrumentsAllowed = true;                // the host may turn instruments off (init.instruments)
 
     layoutPanel: HTMLElement;
@@ -921,9 +925,12 @@ export class UIManager {
             partIcon: (cls) => partIcons[cls] ? tb.makeSvg(partIcons[cls], 24) : null,
             run: (menu, item) => this.app.commands.menuPerformed(menu, item),
             beginDrag: (cls, x, y) => this.mouse.beginToolbarDrag(cls, x, y),
-            meterAllowed: () => this.instrumentsAllowed,
-            meterOpen: () => this.meter?.isOpen() ?? false,
-            toggleMeter: () => this.meter?.toggle(),
+            instrumentsAllowed: () => this.instrumentsAllowed,
+            instruments: () => [
+                { label: Locale.LS("Multimeter"), open: () => this.meter?.isOpen() ?? false, toggle: () => this.meter?.toggle() },
+                { label: Locale.LS("Function generator"), open: () => this.generator?.isOpen() ?? false, toggle: () => this.generator?.toggle() },
+                { label: Locale.LS("Power supply"), open: () => this.supply?.isOpen() ?? false, toggle: () => this.supply?.toggle() },
+            ],
         }, this.canvasWrapper);
         const pill = this.canvasWrapper.querySelector<HTMLElement>(".zoomPill");
         if (pill != null)
@@ -964,6 +971,26 @@ export class UIManager {
             simTime: () => this.app.sim.t,
             repaint: () => this.repaint(),
         }, this.canvasWrapper, this.cv);
+        const sources = {
+            transform: () => this.app.transform,
+            elements: () => this.elmList,
+            repaint: () => this.repaint(),
+            simTime: () => this.app.sim.t,
+            addElement: (elm: any) => {
+                this.app.elmList.push(elm);
+                this.app.needAnalyze();
+            },
+            removeElement: (elm: any) => {
+                const i = this.app.elmList.indexOf(elm);
+                if (i >= 0)
+                    this.app.elmList.splice(i, 1);
+                elm.delete();
+                this.app.needAnalyze();
+            },
+            reanalyze: () => this.app.needAnalyze(),
+        };
+        this.generator = new FunctionGenerator(sources, this.canvasWrapper, this.cv);
+        this.supply = new BenchSupply(sources, this.canvasWrapper, this.cv);
         this.freeze = new Freeze({
             setRunning: (on) => this.setSimRunning(on),
             timeText: () => CircuitElm.getTimeText(this.app.sim.t),
@@ -1477,6 +1504,8 @@ export class UIManager {
                 voltage: (v) => CircuitElm.getVoltageText(v),
             }, { currents: this.freeze.showCurrents, voltages: this.freeze.showVoltages },
             floatingRects(this.cv));
+        this.generator?.draw(this.cvcontext);
+        this.supply?.draw(this.cvcontext);
         this.meter?.draw(this.cvcontext);
         if (drag != null && this.mouse.mouseCursorX >= 0)
             drawReadout(this.cvcontext, this.dragReadout(drag), this.mouse.mouseCursorX, this.mouse.mouseCursorY);

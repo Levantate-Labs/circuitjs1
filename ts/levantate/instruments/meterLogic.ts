@@ -33,8 +33,10 @@ const dist2 = (a: PointLike, b: PointLike) => (a.x - b.x) ** 2 + (a.y - b.y) ** 
 const isWire = (ce: MeterElm) => !!(ce.isRemovableWire?.() || ce.isWireEquivalent?.());
 
 // Nearest thing a probe dropped at `p` would touch, within `reach` (circuit
-// units): a terminal first, otherwise the closest point on a wire.
-export function findContact(elms: MeterElm[], p: PointLike, reach: number): ProbeContact | null {
+// units): a terminal first, otherwise the closest point on a wire. Sources
+// (`postsOnly`) can only connect at terminals and wire ends: the simulator
+// joins parts only where their ends meet.
+export function findContact(elms: MeterElm[], p: PointLike, reach: number, postsOnly = false): ProbeContact | null {
     let best: ProbeContact | null = null;
     let bestD = reach * reach;
     for (const ce of elms) {
@@ -51,7 +53,7 @@ export function findContact(elms: MeterElm[], p: PointLike, reach: number): Prob
             }
         }
     }
-    if (best != null)
+    if (best != null || postsOnly)
         return best;
     for (const ce of elms) {
         if (!isWire(ce))
@@ -103,6 +105,8 @@ export class CycleWindow {
     private maxV = -Infinity;
     private armed = false;
     private edges: { t: number; intV: number; intV2: number }[] = [];
+    private stableRef = NaN;    // the value the signal has held since stableSince
+    private stableSince = NaN;
 
     // thresholds for edges: the previous window's range once there is one
     constructor(private range: { min: number; max: number } | null = null) {}
@@ -121,6 +125,10 @@ export class CycleWindow {
         }
         this.lastT = t;
         this.lastV = v;
+        if (!(Math.abs(v - this.stableRef) <= Math.max(1e-9, 1e-4 * Math.abs(v)))) {
+            this.stableRef = v;
+            this.stableSince = t;
+        }
         if (v < this.minV) this.minV = v;
         if (v > this.maxV) this.maxV = v;
 
@@ -147,6 +155,14 @@ export class CycleWindow {
         const span = this.maxV - this.minV;
         return span <= Math.max(1e-9, 1e-3 * Math.max(Math.abs(this.maxV), Math.abs(this.minV)));
     }
+
+    /** The signal changed (a step) and has held still for the latter half of the window. */
+    get settled(): boolean {
+        return this.edges.length === 0 && this.duration > 0 && this.lastT - this.stableSince >= this.duration / 2;
+    }
+
+    /** The value it has settled at. */
+    get settledValue(): number { return this.stableRef; }
 
     get observedRange(): { min: number; max: number } | null {
         return this.maxV >= this.minV ? { min: this.minV, max: this.maxV } : null;

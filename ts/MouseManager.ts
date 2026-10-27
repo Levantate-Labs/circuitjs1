@@ -17,7 +17,7 @@
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); locked parts can't be rewired, split or value-scrolled. See CHANGES.md.
-// Modified by Levantate Labs, 2026-10-28: no scope splitter while the graphs are hidden.
+// Modified by Levantate Labs, 2026-10-28: no scope splitter while the graphs are hidden; instruments' output parts can't be hovered or clicked.
 
 import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
@@ -842,6 +842,8 @@ export class MouseManager {
 	    } else {
 		let bestDist = 100000000;
 		for (const ce of this.ui.elmList) {
+		    if ((ce as any).levInstrument)
+			continue;   // Levantate Labs: an instrument's output isn't something to click
 		    if (ce.boundingBox.contains(gx, gy)) {
 			const dist = ce.getMouseDistance(gx, gy);
 			if (dist >= 0 && dist < bestDist) {
@@ -865,6 +867,8 @@ export class MouseManager {
 	    // the mouse pointer was not in any of the bounding boxes, but we
 	    // might still be close to a post
 	    for (const ce of this.ui.elmList) {
+		if ((ce as any).levInstrument)
+		    continue;
 		if (this.mouseMode === MouseManager.MODE_DRAG_POST) {
 		    if (ce.getHandleGrabbedClose(gx, gy, MouseManager.POSTGRABSQ, 0) > 0) {
 			newMouseElm = ce;

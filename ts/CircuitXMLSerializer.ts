@@ -19,6 +19,9 @@
 
 // GWT conversion (c) 2015 by Iain Sharp
 
+// Modified by Levantate Labs, 2026-10-28: instruments' own source parts (function
+// generator, bench supply) are not saved. See CHANGES.md.
+
 // For information about the theory behind this, see Electronic Circuit & System Simulation Methods by Pillage
 // or https://github.com/sharpie7/circuitjs1/blob/master/INTERNALS.md
 
@@ -120,6 +123,8 @@ export class CircuitXMLSerializer {
             CircuitXMLSerializer.dumpAttr(root, "st", sim.solverType);
 
         for (const ce of this.app.elmList) {
+            if ((ce as any).levInstrument)
+                continue;   // an instrument's output, not part of the circuit
             const elem = doc.createElement(ce.getXmlDumpType());
             ce.dumpXml(doc, elem);
             if (this.saveState)

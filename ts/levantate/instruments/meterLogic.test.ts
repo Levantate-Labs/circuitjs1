@@ -39,6 +39,17 @@ describe("CycleWindow", () => {
         expect(w.result().avg).toBeCloseTo(4.998, 9);
     });
 
+    it("notices a step that has settled", () => {
+        const w = new CycleWindow();
+        for (let t = 0; t < 0.01; t += 1e-4) w.add(t, t < 0.002 ? 5 : 2);
+        expect(w.steady).toBe(false);
+        expect(w.settled).toBe(true);
+        expect(w.settledValue).toBe(2);
+        const ac = new CycleWindow();
+        for (let t = 0; t < 0.01; t += 1e-4) ac.add(t, Math.sin(2 * Math.PI * 30 * t));
+        expect(ac.settled).toBe(false);
+    });
+
     it("falls back to the whole window before a full cycle", () => {
         const w = new CycleWindow();
         w.add(0, 0);
@@ -73,6 +84,11 @@ describe("findContact", () => {
         const c = findContact([r, w], { x: 67, y: 60 }, 10);
         expect(c?.elm).toBe(w);
         expect(c?.at).toEqual({ x: 64, y: 60 });
+    });
+
+    it("lets sources touch only terminals and wire ends", () => {
+        expect(findContact([r, w], { x: 67, y: 60 }, 10, true)).toBeNull();
+        expect(findContact([r, w], { x: 66, y: 126 }, 10, true)?.at).toEqual({ x: 64, y: 128 });
     });
 
     it("touches nothing out of reach", () => {

@@ -13,11 +13,8 @@
 // shows the average, AC the RMS of the varying part. Works in tests, where the
 // circuit's own parts may be locked.
 
-import { Theme } from "../theme";
-import {
-    CycleWindow, findContact, formatReading, resistanceBetween,
-    type MeterElm, type MeterMode, type PointLike, type ProbeContact,
-} from "./meterLogic";
+import { CycleWindow, formatReading, resistanceBetween, type MeterMode, type PointLike, type ProbeContact } from "./meterLogic";
+import { ProbeLeads, RED, makePanelDraggable, placePanel } from "./leads";
 
 export interface MeterHost {
     transform(): number[];          // [scale, 0, 0, scale, tx, ty]: circuit to canvas pixels
@@ -34,18 +31,10 @@ const MODES: { mode: MeterMode; label: string; title: string }[] = [
     { mode: "ohm", label: "Ω", title: "Resistance of one part" },
 ];
 
-const RED = "#e5484d";
-const TIP_HIT_PX = 14;          // grab a probe tip within this many screen pixels
-const CONTACT_REACH_PX = 14;    // a dropped tip touches things within this many pixels
 const WINDOW_WALL_MS = 350;      // refresh a few times a second…
 const WINDOW_SIM_S = 0.1;        // …or after this much simulated time (whole cycles)
 const WINDOW_MAX_SIM_S = 0.5;    // a slow, non-repeating change: refresh anyway
 const WINDOW_MAX_WALL_MS = 3000; // a very slow simulation: refresh anyway
-
-interface Probe {
-    at: PointLike;              // circuit coordinates
-    contact: ProbeContact | null;
-}
 
 export class Multimeter {
     private readonly panel: HTMLElement;
@@ -59,10 +48,7 @@ export class Multimeter {
 
     private open = false;
     private mode: MeterMode = "dcv";
-    private red: Probe = { at: { x: 0, y: 0 }, contact: null };
-    private black: Probe = { at: { x: 0, y: 0 }, contact: null };
-    private placed = false;
-    private dragging: Probe | null = null;
+    private readonly leads: ProbeLeads;
     private clampTarget: any = null;
     private picking = false;
 
@@ -106,8 +92,15 @@ export class Multimeter {
             this.picking = !this.picking;
             this.render();
         });
-        this.makeDraggable(this.panel.querySelector(".lvMeterHead")!);
+        makePanelDraggable(this.panel, this.panel.querySelector(".lvMeterHead")!, container, () => host.repaint());
         container.appendChild(this.panel);
+        this.leads = new ProbeLeads(host, canvas, {
+            park: { x: 0.62, y: 0.5 },
+            onChange: () => {
+                this.shown = NaN;
+                this.resetWindow();
+            },
+        });
 
         // in front of the canvas's own handlers: probes and the clamp take the click
         container.addEventListener("pointerdown", (e) => this.pointerDown(e), true);
@@ -127,8 +120,10 @@ export class Multimeter {
     setOpen(on: boolean): void {
         this.open = on;
         this.panel.classList.toggle("lvHidden", !on);
-        if (on && !this.placed)
-            this.parkProbes();
+        if (on) {
+            placePanel(this.panel, this.container);
+            this.leads.parkIfNew();
+        }
         this.resetWindow();
         this.render();
         this.host.repaint();
@@ -166,7 +161,7 @@ export class Multimeter {
             const t = this.clampTarget;
             return t != null && this.host.elements().includes(t) ? t.getCurrent() : NaN;
         }
-        return this.voltageAt(this.red.contact) - this.voltageAt(this.black.contact);
+        return this.voltageAt(this.leads.red.contact) - this.voltageAt(this.leads.black.contact);
     }
 
     // Called on every simulation time step.
@@ -184,6 +179,13 @@ export class Multimeter {
         const wall = performance.now() - this.windowStartWall;
         // (a reading over part of a cycle would be wrong, so a slow simulation
         // keeps integrating rather than refresh early)
+        if (wall >= WINDOW_WALL_MS && !w.steady && w.settled) {
+            // a step that has settled: show where it settled (no AC left)
+            const ac = this.mode === "acv" || this.mode === "aca";
+            this.shown = ac ? 0 : w.settledValue;
+            this.resetWindow();
+            return;
+        }
         const done = (wall >= WINDOW_WALL_MS && (w.steady || w.cycles >= 2)) ||
             (w.duration >= WINDOW_SIM_S && w.cycles >= 1) ||
             (wall >= WINDOW_MAX_WALL_MS && w.cycles >= 1) ||
@@ -203,37 +205,6 @@ export class Multimeter {
 
     // ---- per frame: contacts, display, drawing ----
 
-    private toScreen(p: PointLike): PointLike {
-        const t = this.host.transform();
-        return { x: p.x * t[0] + t[4], y: p.y * t[3] + t[5] };
-    }
-
-    private toCircuit(sx: number, sy: number): PointLike {
-        const t = this.host.transform();
-        return { x: (sx - t[4]) / t[0], y: (sy - t[5]) / t[3] };
-    }
-
-    private reach(): number {
-        return CONTACT_REACH_PX / this.host.transform()[0];
-    }
-
-    private refreshContacts(): void {
-        const elms = this.host.elements() as MeterElm[];
-        for (const p of [this.red, this.black]) {
-            if (p === this.dragging)
-                continue;
-            p.contact = findContact(elms, p.at, this.reach() * 0.5);
-            if (p.contact)
-                p.at = { ...p.contact.at };
-        }
-    }
-
-    private sameNode(): boolean {
-        const r = this.red.contact, b = this.black.contact;
-        const n = (c: ProbeContact) => (c.elm as any).nodes?.[c.post];
-        return r != null && b != null && n(r) != null && n(r) === n(b);
-    }
-
     private render(): void {
         if (!this.open)
             return;
@@ -246,7 +217,7 @@ export class Multimeter {
 
         let value = this.shown;
         if (this.mode === "ohm")
-            value = resistanceBetween(this.red.contact, this.black.contact, this.sameNode());
+            value = resistanceBetween(this.leads.red.contact, this.leads.black.contact, this.leads.sameNode());
         const f = formatReading(value, this.mode);
         this.digits.textContent = f.digits;
         this.unit.textContent = f.unit;
@@ -255,7 +226,7 @@ export class Multimeter {
         let hint = "";
         if (isAmps)
             hint = this.picking ? "Click the part whose current you want." : this.clampTarget ? "" : "Clamp a part to read the current through it.";
-        else if (!this.red.contact || !this.black.contact)
+        else if (!this.leads.attached)
             hint = "Drag the red and black probe tips onto the circuit.";
         else if (this.mode === "ohm" && !isFinite(value))
             hint = "Put the probes on the two ends of one part.";
@@ -271,60 +242,21 @@ export class Multimeter {
     draw(ctx: CanvasRenderingContext2D): void {
         if (!this.open)
             return;
-        this.refreshContacts();
+        this.leads.refresh();
         this.render();
         ctx.save();
         if (this.isAmps())
             this.drawClamp(ctx);
-        else {
-            const c = this.canvas.getBoundingClientRect();
-            this.jacks.forEach((jack, i) => {
-                const r = jack.getBoundingClientRect();
-                const from = { x: r.left + r.width / 2 - c.left, y: r.top + r.height / 2 - c.top };
-                this.drawProbe(ctx, i === 0 ? this.red : this.black, from, i === 0 ? RED : Theme.palette.ink);
-            });
-        }
+        else
+            this.leads.draw(ctx, this.jacks);
         ctx.restore();
-    }
-
-    private drawProbe(ctx: CanvasRenderingContext2D, p: Probe, from: PointLike, color: string): void {
-        const tip = this.toScreen(p.at);
-        // the lead hangs a little between the meter and the tip
-        const sag = Math.min(80, Math.hypot(tip.x - from.x, tip.y - from.y) * 0.25);
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.bezierCurveTo(from.x, from.y + sag, tip.x, tip.y + sag, tip.x, tip.y);
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.75;
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-
-        ctx.beginPath();
-        ctx.arc(tip.x, tip.y, 7, 0, 2 * Math.PI);
-        ctx.fillStyle = p.contact ? color : Theme.palette.background;
-        ctx.fill();
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = color;
-        ctx.stroke();
-        if (p === this.dragging) {
-            const c = findContact(this.host.elements(), p.at, this.reach());
-            if (c) {
-                const s = this.toScreen(c.at);
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, 11, 0, 2 * Math.PI);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = Theme.palette.select;
-                ctx.stroke();
-            }
-        }
     }
 
     private drawClamp(ctx: CanvasRenderingContext2D): void {
         const t = this.clampTarget;
         if (t == null || !this.host.elements().includes(t))
             return;
-        const a = this.toScreen({ x: t.x, y: t.y }), b = this.toScreen({ x: t.x2, y: t.y2 });
+        const a = this.leads.toScreen({ x: t.x, y: t.y }), b = this.leads.toScreen({ x: t.x2, y: t.y2 });
         const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
         ctx.beginPath();
         ctx.ellipse(m.x, m.y, 16, 16, 0, 0.25 * Math.PI, 1.75 * Math.PI);
@@ -335,13 +267,6 @@ export class Multimeter {
     }
 
     // ---- interaction ----
-
-    private parkProbes(): void {
-        const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
-        this.red = { at: this.toCircuit(w * 0.62, h * 0.5), contact: null };
-        this.black = { at: this.toCircuit(w * 0.62 + 50, h * 0.5 + 30), contact: null };
-        this.placed = true;
-    }
 
     private local(e: PointerEvent): PointLike {
         const r = this.canvas.getBoundingClientRect();
@@ -355,7 +280,7 @@ export class Multimeter {
         if (this.isAmps()) {
             if (!this.picking)
                 return;
-            const target = this.partAt(this.toCircuit(s.x, s.y));
+            const target = this.partAt(this.leads.toCircuit(s.x, s.y));
             e.preventDefault();
             e.stopPropagation();
             if (target != null) {
@@ -368,35 +293,7 @@ export class Multimeter {
             this.host.repaint();
             return;
         }
-        const hit = [this.red, this.black].find((p) => {
-            const t = this.toScreen(p.at);
-            return Math.hypot(t.x - s.x, t.y - s.y) <= TIP_HIT_PX;
-        });
-        if (hit == null)
-            return;
-        e.preventDefault();
-        e.stopPropagation();
-        this.dragging = hit;
-        hit.contact = null;
-        const move = (ev: PointerEvent) => {
-            const q = this.local(ev);
-            hit.at = this.toCircuit(q.x, q.y);
-            this.host.repaint();
-        };
-        const up = () => {
-            window.removeEventListener("pointermove", move);
-            window.removeEventListener("pointerup", up);
-            this.dragging = null;
-            const c = findContact(this.host.elements(), hit.at, this.reach());
-            hit.contact = c;
-            if (c)
-                hit.at = { ...c.at };
-            this.shown = NaN;
-            this.resetWindow();
-            this.host.repaint();
-        };
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up);
+        this.leads.pointerDown(e);
     }
 
     // the smallest part whose box holds the point (wires included)
@@ -415,27 +312,5 @@ export class Multimeter {
             }
         }
         return best;
-    }
-
-    private makeDraggable(handle: HTMLElement): void {
-        handle.addEventListener("pointerdown", (e) => {
-            if ((e.target as HTMLElement).closest("button"))
-                return;
-            e.preventDefault();
-            const start = { x: e.clientX, y: e.clientY, left: this.panel.offsetLeft, top: this.panel.offsetTop };
-            const move = (ev: PointerEvent) => {
-                const maxX = this.container.clientWidth - this.panel.offsetWidth;
-                const maxY = this.container.clientHeight - this.panel.offsetHeight;
-                this.panel.style.left = Math.max(0, Math.min(maxX, start.left + ev.clientX - start.x)) + "px";
-                this.panel.style.top = Math.max(0, Math.min(maxY, start.top + ev.clientY - start.y)) + "px";
-                this.host.repaint();
-            };
-            const up = () => {
-                window.removeEventListener("pointermove", move);
-                window.removeEventListener("pointerup", up);
-            };
-            window.addEventListener("pointermove", move);
-            window.addEventListener("pointerup", up);
-        });
     }
 }

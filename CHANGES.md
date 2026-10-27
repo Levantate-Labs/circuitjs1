@@ -234,6 +234,31 @@ License, version 2 or (at your option) any later version.
 - Help guide: a Multimeter section. Tests: `meterLogic.test.ts`; the e2e test
   checks the meter is in the exam dock.
 
+### Function generator and bench power supply (roadmap slice L9)
+
+- The dock's meter button is now **Instruments**, a menu with the multimeter,
+  a function generator and a power supply. Panels open in free space and can
+  be dragged; leads are shared (`levantate/instruments/leads.ts`).
+- **Function generator** (`functionGenerator.ts`): sine, square, triangle or
+  sawtooth; frequency, peak-to-peak amplitude and offset; 50 Ω output (upstream
+  `VoltageElm` with an internal resistance). Changing the frequency keeps the
+  phase continuous.
+- **Power supply** (`benchSupply.ts`): voltage and current limit with CV/CC
+  shown, as on a bench supply. `PsuSourceElm` is upstream's current source with
+  a compliance voltage, with the knee narrowed from 5% to 0.02% so the output
+  holds its setting under load.
+- **How a source instrument connects** (`sourceInstrument.ts`): while its
+  output is on and both leads are on terminals (sources can only join where
+  parts' ends meet), it adds its source part between them. That part is marked
+  `levInstrument`: `CircuitXMLSerializer` doesn't save it (so it's never in an
+  answer, an export or an undo copy), it's locked, it draws nothing, grading
+  points and the Freeze labels ignore it, and `MouseManager` doesn't hover or
+  click it. A load or undo rebuilds the circuit without it; it is added back
+  on the next frame. Closing the instrument turns the output off.
+- Multimeter: a step that has settled refreshes the reading straight away.
+- `init.instruments: false` closes and hides all three. Help guide section
+  renamed Instruments.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)
