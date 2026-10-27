@@ -167,7 +167,9 @@ export function measure(pins: GradePointElm[], points: { id: string; measure: st
 
 export function installGrader(app: any): void {
     (window as any).LvGrader = {
-        version: 1,
+        version: 2,
         run: (req: GradeRequest) => runGrading(app, req),
+        // frequency response (L10): loads ngspice on first use
+        ac: async (req: any) => (await import("./acRunner")).runAcGrading(app, req),
     };
 }

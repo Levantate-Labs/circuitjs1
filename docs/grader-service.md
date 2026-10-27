@@ -65,6 +65,34 @@ Limits: `settle + window` ≤ 10 s of simulated time, ≤ 200 points, 600 KB bod
 HTTP errors: `401` bad token, `413` body too large, `503` the browser failed
 (safe to retry).
 
+### Frequency response (`"analysis": "ac"`)
+
+An AC analysis in ngspice (the circuit is exported as a SPICE netlist,
+`ts/levantate/spice/`), read at a grading point:
+
+```json
+{
+  "analysis": "ac",
+  "circuit": "…",
+  "out": "gp_vout",
+  "ref": null,
+  "input": null,
+  "from": 1, "to": 1000000, "perDecade": 40,
+  "measures": ["gain_db@1000", "phase@1000", "peak_db", "peak_f", "f3db_low", "f3db_high"]
+}
+```
+
+- `out`: the grading point whose node is the output; `ref`: a second point to
+  measure against (default ground).
+- `input`: which voltage source to sweep, in circuit order; by default the
+  first AC source (or the first source).
+- Reply: `{ "ok": true, "values": { "gain_db@1000": -1.47, … }, "unsupported": [], "points": [...] }`.
+  Gain in dB, phase in degrees, frequencies in Hz; a reading that doesn't exist
+  (e.g. no −3 dB point in range) is `null`. Parts SPICE can't express are left
+  out and listed in `unsupported`.
+- Errors (`ok: false`): `bad-request`, `bad-circuit`, `no-point` (the pin is
+  missing or appears twice), `no-input`, `spice` (ngspice's message).
+
 `GET /healthz` answers `ok` once the browser is running.
 
 ## Running it

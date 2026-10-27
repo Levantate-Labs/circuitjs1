@@ -62,6 +62,26 @@ describe("grading service", () => {
         expect(r.values.gp_vout.freq).toBeCloseTo(50, 3);
     });
 
+    it("grades a frequency response with ngspice", async () => {
+        const rc = `$ 1 0.000005 10.2 50 5 43 5e-11
+v 96 336 96 96 0 1 1000 5 0 0 0.5
+r 96 96 256 96 0 1000
+c 256 96 256 336 0 1e-7 0
+w 96 336 256 336 0
+4000 256 96 336 48 0 node gp_out Vout
+`;
+        const r = await grade({ analysis: "ac", circuit: rc, out: "gp_out", from: 1, to: 1e6,
+            measures: ["gain_db@1000", "phase@1591.5", "f3db_high", "peak_db"] }).then((x) => x.json());
+        expect(r.ok).toBe(true);
+        const fc = 1 / (2 * Math.PI * 1000 * 1e-7);
+        expect(r.values["gain_db@1000"]).toBeCloseTo(-10 * Math.log10(1 + (1000 / fc) ** 2), 2);
+        expect(r.values["phase@1591.5"]).toBeCloseTo(-45, 0);
+        expect(Math.abs(r.values.f3db_high - fc) / fc).toBeLessThan(0.01);
+        expect(r.values.peak_db).toBeCloseTo(0, 3);
+        const bad = await grade({ analysis: "ac", circuit: rc, out: "gp_out", from: 1, to: 1e6, measures: ["median"] }).then((x) => x.json());
+        expect(bad.error.code).toBe("bad-request");
+    }, 90_000);
+
     it("explains bad requests instead of running them", async () => {
         const r = await grade({ circuit: DIVIDER, settle: 6, window: 6, points: [] }).then((x) => x.json());
         expect(r.ok).toBe(false);

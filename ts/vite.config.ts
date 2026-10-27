@@ -1,4 +1,4 @@
-// Modified by Levantate Labs, 2026-10-26: app built into dist/workspace/ (see appDir). See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: app built into dist/workspace/ (see appDir); 2026-10-28: copies the ngspice engine. See CHANGES.md.
 import { defineConfig, type Plugin } from 'vitest/config'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -87,6 +87,15 @@ function copyPublicAssets(): Plugin {
       }
       fs.cpSync(path.join(publicDir, 'circuitjs', 'font'), path.join(nested, 'font'), { recursive: true })
       fs.cpSync(path.join(publicDir, 'setuplist.txt'), path.join(nested, 'setuplist.txt'))
+      // Levantate Labs: ngspice (eecircuit-engine, MIT) for AC analysis, loaded
+      // on demand from here rather than bundled (levantate/spice/engine.ts)
+      const spice = path.join(nested, 'spice')
+      fs.mkdirSync(spice, { recursive: true })
+      const engineDir = path.join(tsRoot, 'node_modules', 'eecircuit-engine')
+      fs.cpSync(path.join(engineDir, 'dist', 'eecircuit-engine.mjs'), path.join(spice, 'eecircuit-engine.mjs'))
+      for (const f of ['LICENSE', 'LICENSE.md', 'README.md'])
+        if (fs.existsSync(path.join(engineDir, f)))
+          fs.cpSync(path.join(engineDir, f), path.join(spice, f))
       for (const page of ['iframe.html', 'jsinterface.html', 'circuitjs/about.html']) {
         fs.cpSync(path.join(tsRoot, page), path.join(out, page))
       }

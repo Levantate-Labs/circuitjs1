@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
 const MIME = {
-    ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
+    ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json",
     ".txt": "text/plain", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2",
 };
 

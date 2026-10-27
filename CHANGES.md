@@ -273,6 +273,38 @@ License, version 2 or (at your option) any later version.
 - Hooks: `MouseManager.ts` (the gear), `UIManager.ts` (cursors drawn after the
   graphs). Help guide: the Graphs section describes the panel.
 
+### SPICE export, AC analysis and Bode plot (roadmap slice L10)
+
+- New `ts/levantate/spice/`:
+  - `netlist.ts`: exports the circuit as an ngspice netlist on the simulator's
+    solved nodes (wires and labels already merged; ground is `0`): resistors,
+    capacitors, inductors, potentiometers, closed switches, ammeters, voltage
+    sources and rails (DC, SIN, PULSE; an internal resistance as a series R),
+    current sources, the bench supply (as the voltage it holds), diodes, LEDs
+    and zeners (`.model D`), NPN/PNP (`.model` with IS, BF, BR, NF, NR, VAF,
+    junction capacitances, TF), MOSFETs (level 1: VTO, KP, LAMBDA) and op amps
+    (a behavioural source with the simulator's gain, clamped to its rails).
+    Anything else is a comment and is reported. One source can be marked
+    `AC 1` as the input of an AC analysis.
+  - `engine.ts`: ngspice in WebAssembly via `eecircuit-engine` (MIT; ngspice
+    is BSD-licensed), about 20 MB (5.7 MB compressed). Not bundled: the build
+    copies it to `circuitjs/spice/` (`vite.config.ts`) and it loads the first
+    time an analysis runs. Runs are queued.
+  - `ac.ts`: an `.ac dec` sweep from one source to a pair of nodes; `bode.ts`:
+    gain (dB) and unwrapped phase, values at a frequency, peak and −3 dB
+    points.
+- **Bode plot** (`levantate/instruments/bodePanel.ts`, in the Instruments
+  menu): choose the input source, put the OUT and REF probes on the circuit,
+  set the range and run; gain and phase on a log axis with the −3 dB points
+  marked and a readout under the pointer; "Copy SPICE netlist" (not in exams).
+- **Grading** (`levantate/grader/acRunner.ts`, `LvGrader.ac`): the grading
+  service accepts `"analysis": "ac"` and returns gain/phase at frequencies,
+  peak and cutoff frequencies at a grading point (`docs/grader-service.md`).
+- Tests: `netlist.test.ts`, `bode.test.ts`; the grading e2e test grades an RC
+  low-pass with ngspice. `grader/server.mjs` and the e2e server serve `.mjs`.
+- `circuitjs/about.html` credits ngspice (modified BSD), EEcircuit-engine (MIT)
+  and Plus Jakarta Sans (OFL).
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

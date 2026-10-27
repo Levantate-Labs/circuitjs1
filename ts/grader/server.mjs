@@ -57,7 +57,7 @@ if (!fs.existsSync(path.join(DIST, "workspace", "index.html"))) {
 // ---- the app, served to our own browser only ----
 
 const MIME = {
-    ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
+    ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json",
     ".txt": "text/plain", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2",
     ".woff": "font/woff", ".ttf": "font/ttf", ".ico": "image/x-icon", ".gif": "image/gif", ".jpg": "image/jpeg",
 };
@@ -120,11 +120,13 @@ function timeout(ms) {
     return new Promise((_, reject) => setTimeout(() => reject(new Error("timed out")), ms));
 }
 
-async function grade(request) {
+async function grade(request, analysis = "transient") {
     return withPage(async (page) => {
         const work = (async () => {
             await page.goto(APP_URL, { waitUntil: "load" });
             await page.waitForFunction(() => window.LvGrader != null, null, { timeout: 20_000 });
+            if (analysis === "ac")
+                return page.evaluate((req) => window.LvGrader.ac(req), request);
             return page.evaluate((req) => window.LvGrader.run(req), request);
         })();
         return Promise.race([work, timeout(JOB_TIMEOUT_MS)]);
@@ -185,12 +187,17 @@ const api = http.createServer(async (req, res) => {
     }
     const started = Date.now();
     try {
-        const result = await grade({
-            circuit: body.circuit,
-            settle: body.settle,
-            window: body.window,
-            points: body.points,
-        });
+        const result = body.analysis === "ac"
+            ? await grade({
+                circuit: body.circuit, out: body.out, ref: body.ref ?? null, input: body.input ?? null,
+                from: body.from, to: body.to, perDecade: body.perDecade, measures: body.measures,
+            }, "ac")
+            : await grade({
+                circuit: body.circuit,
+                settle: body.settle,
+                window: body.window,
+                points: body.points,
+            });
         console.log(`grade ok=${result.ok} steps=${result.steps} ${Date.now() - started}ms`);
         send(res, 200, result);
     } catch (e) {

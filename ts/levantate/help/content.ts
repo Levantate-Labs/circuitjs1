@@ -156,7 +156,7 @@ Changing the circuit also ends a freeze, because the labels would be out of date
     {
         id: "meter",
         title: "Instruments",
-        summary: "Multimeter, function generator and power supply.",
+        summary: "Multimeter, function generator, power supply and Bode plot.",
         body: `
 <p>Open them from the Instruments button in the tool dock. The <b>multimeter</b> never changes
 the circuit, so it also works on a test's locked parts.</p>
@@ -176,8 +176,13 @@ red (+) and black leads onto terminals or wire ends, set them up, and press <b>O
   <li>The supply holds its voltage (<b>CV</b>) until the load would draw more than the current
       limit, then holds the limit current instead (<b>CC</b>), like a bench supply.</li>
 </ul>
+<p><b>Bode plot</b> (also in Instruments) shows how the circuit responds across frequencies: pick
+the input source, put the red <b>OUT</b> probe where you want to look (and <b>REF</b> on another
+point, or leave it on ground), set the range and press <b>Run sweep</b>. It plots the gain in dB and
+the phase in degrees, marks the −3 dB points and reads values under the pointer. It uses SPICE
+(ngspice), loaded the first time you run a sweep.</p>
 <p>Instruments are never part of your saved circuit or your answer.</p>`,
-        keywords: "multimeter meter voltmeter ammeter ohmmeter probe clamp measure voltage current resistance dmm function signal generator wave sine square power supply psu bench current limit cv cc instruments",
+        keywords: "multimeter meter voltmeter ammeter ohmmeter probe clamp measure voltage current resistance dmm function signal generator wave sine square power supply psu bench current limit cv cc instruments bode frequency response ac analysis gain phase cutoff filter spice",
     },
     {
         id: "graphs",

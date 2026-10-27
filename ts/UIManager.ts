@@ -54,6 +54,7 @@ import { Multimeter } from "./levantate/instruments/multimeter";
 import { FunctionGenerator } from "./levantate/instruments/functionGenerator";
 import { BenchSupply } from "./levantate/instruments/benchSupply";
 import { ScopePanel } from "./levantate/instruments/scopePanel";
+import { BodePanel } from "./levantate/instruments/bodePanel";
 
 // GWT KeyCodes equivalents
 const KEY_BACKSPACE = 8;
@@ -74,7 +75,7 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // Modified by Levantate Labs, 2026-10-28: Freeze button and freeze overlay; live
 // values in the properties panel; show/hide the graph strip and side panel; Help
 // panel and first-run tour; instruments (multimeter, function generator, bench supply,
-// scope panel).
+// scope panel, Bode plot).
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -517,6 +518,7 @@ export class UIManager {
     generator: FunctionGenerator | null = null;
     supply: BenchSupply | null = null;
     scopePanel: ScopePanel | null = null;
+    bode: BodePanel | null = null;
     instrumentsAllowed = true;                // the host may turn instruments off (init.instruments)
 
     layoutPanel: HTMLElement;
@@ -933,6 +935,7 @@ export class UIManager {
                 { label: Locale.LS("Multimeter"), open: () => this.meter?.isOpen() ?? false, toggle: () => this.meter?.toggle() },
                 { label: Locale.LS("Function generator"), open: () => this.generator?.isOpen() ?? false, toggle: () => this.generator?.toggle() },
                 { label: Locale.LS("Power supply"), open: () => this.supply?.isOpen() ?? false, toggle: () => this.supply?.toggle() },
+                { label: Locale.LS("Bode plot (AC analysis)"), open: () => this.bode?.isOpen() ?? false, toggle: () => this.bode?.toggle() },
             ],
         }, this.canvasWrapper);
         const pill = this.canvasWrapper.querySelector<HTMLElement>(".zoomPill");
@@ -994,6 +997,26 @@ export class UIManager {
         };
         this.generator = new FunctionGenerator(sources, this.canvasWrapper, this.cv);
         this.supply = new BenchSupply(sources, this.canvasWrapper, this.cv);
+        this.bode = new BodePanel({
+            prepare: () => {
+                if (this.app.analyzeFlag) {
+                    this.app.sim.analyzeCircuit();
+                    this.app.analyzeFlag = false;
+                    if (this.app.stopMessage == null)
+                        this.app.sim.preStampAndStampCircuit();
+                }
+            },
+            transform: () => this.app.transform,
+            elements: () => this.elmList,
+            repaint: () => this.repaint(),
+            sourceLabel: (e: any) => {
+                if (e.levInstrument) return Locale.LS("Function generator");
+                const v = CircuitElm.getVoltageText(e.waveform === 0 ? e.maxVoltage + e.bias : e.maxVoltage);
+                const kind = e.getPostCount() === 1 ? Locale.LS("Rail") :
+                    e.waveform === 0 ? Locale.LS("DC source") : e.waveform === 1 ? Locale.LS("AC source") : Locale.LS("Source");
+                return e.waveform === 0 ? `${kind}, ${v}` : `${kind}, ${v} ${CircuitElm.getUnitText(e.frequency, "Hz")}`;
+            },
+        }, this.canvasWrapper, this.cv);
         this.scopePanel = new ScopePanel({
             canvas: this.cv,
             container: this.canvasWrapper,
@@ -1517,6 +1540,7 @@ export class UIManager {
             floatingRects(this.cv));
         this.generator?.draw(this.cvcontext);
         this.supply?.draw(this.cvcontext);
+        this.bode?.draw(this.cvcontext);
         this.meter?.draw(this.cvcontext);
         if (drag != null && this.mouse.mouseCursorX >= 0)
             drawReadout(this.cvcontext, this.dragReadout(drag), this.mouse.mouseCursorX, this.mouse.mouseCursorY);

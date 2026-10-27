@@ -189,7 +189,7 @@ export class Bridge {
         // instruments (the multimeter): on unless the host turns them off
         app.ui.instrumentsAllowed = msg.instruments !== false;
         if (!app.ui.instrumentsAllowed)
-            for (const inst of [app.ui.meter, app.ui.generator, app.ui.supply])
+            for (const inst of [app.ui.meter, app.ui.generator, app.ui.supply, app.ui.bode])
                 if (inst?.isOpen())
                     inst.setOpen(false);
         // compact top bar: on in exams unless the host says otherwise
