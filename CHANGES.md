@@ -201,6 +201,19 @@ License, version 2 or (at your option) any later version.
   dock has Undo/Redo in the compact bar, and answers are marked from readings
   taken after submitting.
 
+### End-to-end tests and an undo fix
+
+- New `ts/e2e/` (`npm run test:e2e`, after `npm run build`): a host page on
+  another origin drives the built lab through the embedding protocol (exam
+  init, compact bar, measuring, adding a part and undoing, read-only), and the
+  grading service is started and checked (token, repeatable readings, AC
+  readings, bad requests). Uses `playwright-core`; `E2E_BROWSER_CHANNEL=msedge`
+  (or `chrome`) uses an installed browser instead of Playwright's Chromium.
+- Upstream fix (`UndoManager.ts`): an edit saves a copy of the circuit before
+  and after it, so the first Undo restored the circuit as it already was and
+  seemed to do nothing. Undo and Redo now skip copies identical to the
+  current circuit.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

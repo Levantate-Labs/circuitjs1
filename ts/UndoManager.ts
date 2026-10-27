@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: no recovery copy in local storage during exams; 2026-10-28: undo/redo keep the starter's parts and locks in exams. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: no recovery copy in local storage during exams; 2026-10-28: undo/redo keep the starter's parts and locks in exams, and skip copies identical to the current circuit. See CHANGES.md.
 
 import { Exam } from "./levantate/exam/exam";
 import { CirSim } from "./CirSim";
@@ -70,21 +70,35 @@ export class UndoManager {
     }
 
     doUndo(): void {
+        const current = this.sim.dumpCircuit();
+        UndoManager.dropCopiesOf(this.undoStack, current);
         if (this.undoStack.length === 0)
             return;
-        this.redoStack.push(new UndoItem(this.sim, this.sim.dumpCircuit()));
+        this.redoStack.push(new UndoItem(this.sim, current));
         const ui = this.undoStack.pop()!;
         this.loadUndoItem(ui);
         this.enableUndoRedo();
     }
 
     doRedo(): void {
+        const current = this.sim.dumpCircuit();
+        UndoManager.dropCopiesOf(this.redoStack, current);
         if (this.redoStack.length === 0)
             return;
-        this.undoStack.push(new UndoItem(this.sim, this.sim.dumpCircuit()));
+        this.undoStack.push(new UndoItem(this.sim, current));
         const ui = this.redoStack.pop()!;
         this.loadUndoItem(ui);
         this.enableUndoRedo();
+    }
+
+    // Levantate Labs: an edit pushes a copy before it (on mouse down) and after
+    // it (on mouse up), so the top of the stack is often the circuit as it is
+    // now, and undo would visibly do nothing until pressed again. Skip copies
+    // that match the current circuit (ignoring slider positions).
+    static dropCopiesOf(stack: UndoItem[], current: string): void {
+        const now = UndoManager.withoutSliders(current);
+        while (stack.length > 0 && UndoManager.withoutSliders(stack[stack.length - 1].dump) === now)
+            stack.pop();
     }
 
     loadUndoItem(ui: UndoItem): void {

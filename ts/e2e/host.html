@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2026 Levantate Labs. GNU GPL v2 or later. E2E test host page:
+     embeds the lab given in ?lab= and records every message it sends. -->
+<html><head><meta charset="UTF-8"><title>e2e host</title>
+<style>html,body{margin:0;height:100%}iframe{width:1100px;height:700px;border:0}</style></head>
+<body>
+<iframe id="sim"></iframe>
+<script>
+  const lab = new URLSearchParams(location.search).get("lab");
+  const sim = document.getElementById("sim");
+  window.received = [];
+  window.addEventListener("message", (e) => {
+    if (e.source === sim.contentWindow && e.data && e.data.source === "maestro-sim") window.received.push(e.data);
+  });
+  window.send = (type, extra) => sim.contentWindow.postMessage({ source: "maestro-sim-host", v: 1, type, id: type + "-" + Date.now(), ...extra }, new URL(lab).origin);
+  window.waitFor = (type, after = 0) => new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    (function poll() {
+      const m = window.received.slice(after).find((x) => x.type === type);
+      if (m) return resolve(m);
+      if (Date.now() - t0 > 15000) return reject(new Error("no " + type));
+      setTimeout(poll, 50);
+    })();
+  });
+  sim.src = lab;
+</script>
+</body></html>
