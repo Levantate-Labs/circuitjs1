@@ -334,7 +334,9 @@ License, version 2 or (at your option) any later version.
   `ts/levantate/registerElements.ts`.
 - ts/Menus.ts: Draw › Outputs and Labels › Add Dot Matrix Display.
 - New `ts/public/circuits/maestro-dotmatrix.txt`, listed under Circuits ›
-  Maestro: a 10-bit counter and a ROM write "MAESTRO" on a 64 × 16 display.
+  Maestro: a 10-bit counter and a ROM write "MAESTRO" on a 64 × 16 display,
+  every connection drawn as a wire (a 5 kHz clock at 4 time steps a cycle, so
+  the sign fills in about a second).
 - ts/levantate/help/content.ts: the memory section covers the display.
 
 ## 2026-10-27
