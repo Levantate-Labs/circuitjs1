@@ -49,6 +49,10 @@ import { ToolDock } from "./levantate/canvas/dock";
 import { Freeze, drawFreezeOverlay, floatingRects } from "./levantate/canvas/freeze";
 import { ViewToggles } from "./levantate/canvas/viewToggles";
 import { HelpPanel } from "./levantate/help/helpPanel";
+import { Exam } from "./levantate/exam/exam";
+import { ICONS } from "./levantate/chrome/icons";
+import { Inspector, formatRate } from "./levantate/chrome/inspector";
+import { hintText } from "./levantate/chrome/actionBar";
 import { Tour } from "./levantate/help/tour";
 import { Multimeter } from "./levantate/instruments/multimeter";
 import { FunctionGenerator } from "./levantate/instruments/functionGenerator";
@@ -76,6 +80,8 @@ const KEY_X = 88, KEY_Y = 89, KEY_Z = 90;
 // values in the properties panel; show/hide the graph strip and side panel; Help
 // panel and first-run tour; instruments (multimeter, function generator, bench supply,
 // scope panel, Bode plot).
+// Modified by Levantate Labs, 2026-10-30: new chrome (levantate/chrome): app bar,
+// action bar with the run controls, and the Inspector in place of the side panel.
 
 export class Scrollbar {
     static readonly HORIZONTAL = 1;
@@ -224,6 +230,18 @@ export class Scrollbar {
     }
 
     setStepSize(step: number): void { this.stepSize = step; }
+
+    // Levantate Labs: sliders outside the Inspector (the speed slider in the
+    // action bar) set their own width
+    setWidth(px: number): void {
+        const dpr = UIManager.devicePixelRatio();
+        this.vpw = px;
+        this.element.width = Math.round(px * dpr);
+        this.element.style.width = px + 'px';
+        this.g = this.element.getContext('2d')!;
+        this.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.draw();
+    }
 
     draw(): void {
         const g = this.g;
@@ -481,6 +499,7 @@ export class UIManager {
     dumpMatrixButton: HTMLButtonElement | null = null;
     powerLabel: HTMLElement;
     titleLabel: HTMLElement;
+    inspector: Inspector | null = null;   // Levantate Labs: the side panel's contents
     speedBar: Scrollbar;
     currentBar: Scrollbar;
     powerBar: Scrollbar;
@@ -544,7 +563,7 @@ export class UIManager {
     canvasHeight: number = 0;
     lastDevicePixelRatio: number = 0;
 
-    static readonly MENUBARHEIGHT = 30;
+    static readonly MENUBARHEIGHT = 44;   // Levantate Labs: the app bar
     static readonly TOOLBARHEIGHT = 40;
     static VERTICALPANELWIDTH = 166; // default
     lastResizeTime: number = 0;
@@ -632,9 +651,9 @@ export class UIManager {
 
         const width = window.innerWidth;
         UIManager.VERTICALPANELWIDTH = Math.floor(width / 5);
-        // wider than upstream (128-166) to fit the Maestro side panel's padding and buttons
-        if (UIManager.VERTICALPANELWIDTH > 216) UIManager.VERTICALPANELWIDTH = 216;
-        if (UIManager.VERTICALPANELWIDTH < 152) UIManager.VERTICALPANELWIDTH = 152;
+        // wider than upstream (128-166) to fit the Inspector's sections
+        if (UIManager.VERTICALPANELWIDTH > 240) UIManager.VERTICALPANELWIDTH = 240;
+        if (UIManager.VERTICALPANELWIDTH < 200) UIManager.VERTICALPANELWIDTH = 200;
 
         this.verticalPanel = document.createElement('div');
         this.verticalPanel.className = 'verticalPanel';
@@ -659,20 +678,19 @@ export class UIManager {
         topPanelCheckboxLabel.className = 'toptriggerlabel';
         topPanelCheckboxLabel.setAttribute('for', 'toptrigger');
 
-        // Reset and Run/Stop side by side (laid out by .sideButtons in levantate/maestro.css)
+        // Levantate Labs: Run/Stop, Reset, Freeze and Speed, in the action bar
+        // (or the app bar in exams; see setCompactBar)
         this.buttonPanel = document.createElement('div');
-        this.buttonPanel.className = 'sideButtons';
+        this.buttonPanel.className = 'runControls';
 
         this.menus.pasteItem.setEnabled(false);
 
         this.menus.dotsCheckItem.setState(true);
         this.menus.voltsCheckItem.setState(true);
         this.menus.showValuesCheckItem.setState(true);
-        this.menus.toolbarCheckItem.setState(
-            !this.hideMenu && !noEditing && !hideSidebar &&
-            (this.app as any).startCircuit == null &&
-            (this.app as any).startCircuitText == null &&
-            (this.app as any).startCircuitLink == null);
+        // Levantate Labs: the action bar holds the run controls, so it shows even
+        // when the page opens with a circuit (upstream hid its toolbar then)
+        this.menus.toolbarCheckItem.setState(!this.hideMenu && !noEditing && !hideSidebar);
         this.app.showPropsOnCreate = this.getOptionFromStorage("showPropsOnCreate", false);
         this.app.showPropsOnClick = this.getOptionFromStorage("showPropsOnClick", true);
         this.menus.crossHairCheckItem.setState(this.getOptionFromStorage("crossHair", false));
@@ -792,18 +810,19 @@ export class UIManager {
         document.body.appendChild(this.subcircuitBar.element);
 
         this.setToolbar(); // calls setCanvasSize()
-        this.verticalPanel.appendChild(this.buttonPanel);
-
-        this.resetButton = document.createElement('button');
-        this.resetButton.textContent = Locale.LS("Reset");
-        this.resetButton.className = 'topButton';
-        this.resetButton.addEventListener('click', () => this.resetAction());
-        this.buttonPanel.appendChild(this.resetButton);
+        this.toolbar.runSlot.appendChild(this.buttonPanel);
 
         this.runStopButton = document.createElement('button');
         UIManager.setRunStopLabel(this.runStopButton, true);
         this.runStopButton.addEventListener('click', () => this.setSimRunning(!this.simIsRunning()));
         this.buttonPanel.appendChild(this.runStopButton);
+
+        this.resetButton = document.createElement('button');
+        this.resetButton.innerHTML = ICONS.reset + Locale.LS("Reset");
+        this.resetButton.className = 'topButton resetButton';
+        this.resetButton.title = Locale.LS("Start again from time zero");
+        this.resetButton.addEventListener('click', () => this.resetAction());
+        this.buttonPanel.appendChild(this.resetButton);
 
         // Levantate Labs: stop at this instant and label currents and voltages
         this.freezeButton = document.createElement('button');
@@ -820,76 +839,36 @@ export class UIManager {
             b.addEventListener('mousedown', (e) => e.preventDefault());
         }
 
-        /*
-        dumpMatrixButton = new Button("Dump Matrix");
-        dumpMatrixButton.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) { dumpMatrix = true; }});
-        verticalPanel.add(dumpMatrixButton);// IES for debugging
-        */
+        // was max of 140
+        this.speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 3, 1, 0, 260);
+        this.speedBar.setWidth(96);
+        const speed = document.createElement('label');
+        speed.className = 'runSpeed';
+        speed.title = Locale.LS("How fast simulated time passes");
+        speed.append(Locale.LS("Speed"), this.speedBar.element);
+        this.buttonPanel.appendChild(speed);
 
         if (LoadFile.isSupported()) {
             this.loadFileInput = new LoadFile(this.app);
             this.verticalPanel.appendChild(this.loadFileInput.element);
         }
 
-        let l: HTMLElement;
-        l = document.createElement('div');
-        l.textContent = Locale.LS("Simulation Speed");
-        l.className = 'topSpace sideLabel';
-        this.verticalPanel.appendChild(l);
-
-        // was max of 140
-        this.speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 3, 1, 0, 260);
-        this.verticalPanel.appendChild(this.speedBar.element);
-
-        l = document.createElement('div');
-        l.textContent = Locale.LS("Current Speed");
-        l.className = 'topSpace sideLabel';
-        this.verticalPanel.appendChild(l);
         this.currentBar = new Scrollbar(Scrollbar.HORIZONTAL, 50, 1, 1, 100);
-        this.verticalPanel.appendChild(this.currentBar.element);
-
-        this.powerLabel = document.createElement('div');
-        this.powerLabel.textContent = Locale.LS("Power Brightness");
-        this.powerLabel.className = 'topSpace sideLabel';
-        this.verticalPanel.appendChild(this.powerLabel);
         this.powerBar = new Scrollbar(Scrollbar.HORIZONTAL, 50, 1, 1, 100);
-        this.verticalPanel.appendChild(this.powerBar.element);
+        this.inspector = new Inspector(this.verticalPanel,
+            { current: this.currentBar.element, power: this.powerBar.element },
+            () => this.app.commands.menuPerformed("file", "about"));
+        this.powerLabel = this.inspector.powerRow;
+        this.inspector.syncLive();
         this.setPowerBarEnable();
-
-        /*
-        // for debugging
-        Button exportImportButton = new Button("Export/Import");
-        exportImportButton.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                String dump = app.dumpCircuit();
-                app.importCircuitFromText(dump, false);
-            }
-        });
-        verticalPanel.add(exportImportButton);
-        */
 
         if ((window as any).TestManager && (window as any).TestManager.enabled) {
             const tm = new (window as any).TestManager(this.app);
             tm.createUI(this.verticalPanel);
         }
 
-        l = document.createElement('div');
-        l.textContent = Locale.LS("Current Circuit:");
-        l.className = 'topSpace sideLabel';
-        this.verticalPanel.appendChild(l);
-
-        this.titleLabel = document.createElement('div');
-        this.titleLabel.className = 'sideTitle';
-        this.titleLabel.textContent = "Label";
-        this.verticalPanel.appendChild(this.titleLabel);
-
-        this.iFrame = document.createElement('iframe');
-        this.iFrame.src = 'iframe.html';
-        this.iFrame.style.width = UIManager.VERTICALPANELWIDTH + 'px';
-        this.iFrame.style.height = '100px';
-        this.iFrame.scrolling = 'no';
-        this.verticalPanel.appendChild(this.iFrame);
+        // the circuit's name is shown in the app bar
+        this.titleLabel = this.menus.appBar?.title ?? document.createElement('span');
 
         this.setGrid();
 
@@ -948,6 +927,7 @@ export class UIManager {
                 panelShown: () => this.sidePanelShown(),
                 setPanel: (on) => this.setSidePanelShown(on),
                 running: () => this.app.simRunning,
+                runControlsShown: () => this.runControlsShown(),
                 setRunning: (on) => this.setSimRunning(on),
                 frozen: () => Freeze.active,
                 toggleFreeze: () => { if (Freeze.active) this.setSimRunning(true); else this.freeze?.freeze(); },
@@ -967,10 +947,11 @@ export class UIManager {
                 return { left: r.left, top: r.top + top, width: r.width, height: this.canvasHeight - top };
             },
         });
-        if (pill != null)
+        const helpPlace = !this.hideMenu && this.menus.appBar ? this.menus.appBar.right : pill;
+        if (helpPlace != null)
             this.help = new HelpPanel({
                 startTour: () => this.tour?.start(),
-            }, pill);
+            }, helpPlace);
         this.meter = new Multimeter({
             transform: () => this.app.transform,
             elements: () => this.elmList,
@@ -1556,6 +1537,7 @@ export class UIManager {
         this.minimap?.update();
         this.dock?.update();
         this.viewToggles?.update();
+        this.updateChrome();
         CirSim.editDialog?.panel?.update();
 
         if (stopHighlightElm != null && stopHighlightElm !== this.mouse.getMouseElm())
@@ -1755,13 +1737,13 @@ export class UIManager {
     // ---- UI Controls ----
 
     setPowerBarEnable(): void {
-        if (this.menus.powerCheckItem.getState()) {
-            this.powerLabel.classList.remove('disabled');
+        const on = this.menus.powerCheckItem.getState();
+        // Levantate Labs: the Inspector's power glow row shows only in power view
+        this.powerLabel.classList.toggle('lvHidden', !on);
+        if (on)
             this.powerBar.enable();
-        } else {
-            this.powerLabel.classList.add('disabled');
+        else
             this.powerBar.disable();
-        }
     }
 
     isReadOnly(): boolean {
@@ -1820,9 +1802,20 @@ export class UIManager {
         this.compactBar = on;
         document.body.classList.toggle("lvCompactBar", on);
         this.menus.toolbarCheckItem.setState(!on);
+        const slot = on ? this.menus.appBar?.controlsSlot : this.toolbar.runSlot;
+        slot?.appendChild(this.buttonPanel);
         this.setToolbar();
         this.centerCircuit();
         this.repaint();
+    }
+
+    // Levantate Labs: whether Run/Reset/Freeze are on screen (the zoom pill
+    // shows Run and Freeze when they aren't)
+    runControlsShown(): boolean {
+        const bar = this.buttonPanel?.parentElement;
+        if (bar == null)
+            return false;
+        return bar === this.toolbar.runSlot ? this.menus.toolbarCheckItem.getState() : !this.hideMenu;
     }
 
     setToolbar(): void {
@@ -1837,11 +1830,60 @@ export class UIManager {
     }
 
     updateToolbar(): void {
-        if (this.mouse.dragElm != null)
-            this.toolbar.setModeLabel(Locale.LS("Drag Mouse"));
-        else
-            this.toolbar.setModeLabel(Locale.LS("Mode: ") + (this.app as any).classToLabelMap?.get(this.mouseModeStr));
-        this.toolbar.highlightButton(this.mouseModeStr);
+        this.updateChrome(true);
+    }
+
+    // Levantate Labs: the action bar's hint, the app bar's save status and the
+    // Inspector's numbers; called every frame, cheap when nothing changed
+    private lastChromeUpdate = 0;
+    private rateSample: { t: number; wall: number } | null = null;
+    private rateText = "";
+
+    updateChrome(force = false): void {
+        const now = performance.now();
+        if (!force && now - this.lastChromeUpdate < 250)
+            return;
+        this.lastChromeUpdate = now;
+
+        const labelOf = (cls: string) => {
+            const l = this.getLabelTextForClass(cls) ?? cls;
+            return l.replace(/^Add /, "");
+        };
+        const mode = this.mouseModeStr;
+        const placing = this.mouse != null && this.mouse.mouseMode === MouseManager.MODE_ADD_ELM &&
+            mode != null && !/^(Select|Drag)/.test(mode) ? labelOf(mode) : null;
+        const selected: string[] = [];
+        for (const ce of this.elmList) {
+            if (!ce.isSelected())
+                continue;
+            selected.push(labelOf(ce.constructor.name));
+            if (selected.length > 1)
+                break;
+        }
+        this.toolbar.setModeLabel(Locale.LS(hintText({
+            dragging: this.mouse?.dragElm != null,
+            placing,
+            selected,
+            readOnly: this.isReadOnly(),
+        })));
+
+        this.menus.appBar?.update(this.app.unsavedChanges && !Exam.embedded);
+
+        if (this.inspector != null && this.sidePanelShown()) {
+            const sim = this.app.sim;
+            if (!this.app.simRunning || this.rateSample == null || sim.t < this.rateSample.t) {
+                this.rateSample = { t: sim.t, wall: now };
+                if (!this.app.simRunning) this.rateText = "";
+            } else if (now - this.rateSample.wall >= 1000) {
+                this.rateText = formatRate((sim.t - this.rateSample.t) / ((now - this.rateSample.wall) / 1000));
+                this.rateSample = { t: sim.t, wall: now };
+            }
+            this.inspector.update({
+                time: CircuitElm.getTimeText(sim.t),
+                step: CircuitElm.getTimeText(sim.timeStep),
+                rate: this.app.simRunning ? (this.rateText || "…") : "",
+            });
+        }
     }
 
     pushSubcircuit(cce: any, allElms: CircuitElm[]): void {
@@ -2252,24 +2294,20 @@ export class UIManager {
         this.loadFileInput = newlf;
     }
 
+    // Levantate Labs: live controls (part sliders) go in the Inspector's section
     addWidgetToVerticalPanel(w: HTMLElement): void {
-        if (this.verticalPanel == null)
+        if (this.inspector == null)
             return;
-        if (this.iFrame != null) {
-            this.verticalPanel.insertBefore(w, this.iFrame);
-            this.setiFrameHeight();
-        } else {
-            this.verticalPanel.appendChild(w);
-        }
+        this.inspector.liveControls.appendChild(w);
+        this.inspector.syncLive();
     }
 
     removeWidgetFromVerticalPanel(w: HTMLElement): void {
-        if (this.verticalPanel == null)
+        if (this.inspector == null)
             return;
-        if (w.parentNode === this.verticalPanel)
-            this.verticalPanel.removeChild(w);
-        if (this.iFrame != null)
-            this.setiFrameHeight();
+        if (w.parentNode === this.inspector.liveControls)
+            this.inspector.liveControls.removeChild(w);
+        this.inspector.syncLive();
     }
 
     // ---- Other ----

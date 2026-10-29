@@ -122,32 +122,27 @@ function isModeName(item: string): boolean {
 // ---- exam UI ----
 
 interface ExamUIRefs {
-    topItems: Map<string, HTMLElement>;     // "file", "tools", "circuits", ...
+    topItems: Map<string, HTMLElement>;     // "circuit", "edit", ..., "examples"
     toolbar: HTMLElement;
     mainMenuItems: { _li: HTMLElement | null }[];
     mainMenuItemNames: string[];
-    sidePanel: HTMLElement;
     // items that only make sense outside exams (e.g. Options > Disable Editing,
     // which would let a student unlock a submitted circuit)
     examHidden: (HTMLElement | null)[];
-    onAbout: () => void;
 }
-
-let aboutLink: HTMLElement | null = null;
 
 // Hide what an exam doesn't allow. Safe to call again when the settings change.
 export function applyExamUI(refs: ExamUIRefs): void {
     const examOn = Exam.active;
-    // inside a host page the File menu goes entirely (the host saves and loads
-    // circuits); exams also drop Tools and the example circuits
-    refs.topItems.get("file")?.classList.toggle("lvHidden", examOn || Exam.embedded);
-    for (const key of ["tools", "circuits"])
-        refs.topItems.get(key)?.classList.toggle("lvHidden", examOn);
+    // inside a host page the Circuit menu goes entirely (the host saves and loads
+    // circuits); exams also drop the example circuits
+    refs.topItems.get("circuit")?.classList.toggle("lvHidden", examOn || Exam.embedded);
+    refs.topItems.get("examples")?.classList.toggle("lvHidden", examOn);
     for (const el of refs.examHidden)
         el?.classList.toggle("lvHidden", examOn);
 
 
-    // parts not in the allow-list disappear from the Draw menu and the toolbar
+    // parts not in the allow-list disappear from the Parts menu and the dock
     refs.mainMenuItems.forEach((item, i) => {
         const name = refs.mainMenuItemNames[i];
         item._li?.classList.toggle("lvHidden", !Exam.isPartAllowed(name) && !isModeName(name));
@@ -163,17 +158,6 @@ export function applyExamUI(refs: ExamUIRefs): void {
         li.classList.toggle("lvHidden", visible === 0);
     }
 
-    // the File menu (with About) is hidden when embedded, so keep an About /
-    // licence link in the side panel (GPLv2 section 2(c))
-    const needAboutLink = examOn || Exam.embedded;
-    if (needAboutLink && aboutLink == null) {
-        const b = document.createElement("button");
-        b.type = "button";
-        aboutLink = b;
-        aboutLink.className = "lvAboutLink";
-        aboutLink.textContent = "About & licence";
-        aboutLink.addEventListener("click", refs.onAbout);
-        refs.sidePanel.appendChild(aboutLink);
-    }
-    aboutLink?.classList.toggle("lvHidden", !needAboutLink);
+    // (About and licence stays reachable in the Inspector's footer while the
+    // Circuit menu is hidden: GPLv2 section 2(c); levantate/chrome/inspector.ts)
 }

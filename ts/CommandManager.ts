@@ -16,9 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); exam-mode command blocking, locked parts, in-memory clipboard. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: Figma-style canvas navigation hooks (levantate/canvas/navigation.ts); exam-mode command blocking, locked parts, in-memory clipboard; 2026-10-30: View › Settings dialog. See CHANGES.md.
 
 import { Exam } from "./levantate/exam/exam";
+import { openSettings } from "./levantate/chrome/settings";
 import { CirSim } from "./CirSim";
 import { CircuitLoader } from "./CircuitLoader";
 import { WireConverter } from "./WireConverter";
@@ -54,6 +55,32 @@ export class CommandManager {
         this.app = app;
     }
 
+    // Levantate Labs: View › Settings (the rarely changed options)
+    private openSettings(): void {
+        const m = this.app.menus;
+        const d = openSettings({
+            rows: () => [
+                { group: "Drawing", items: [
+                    { toggle: m.euroResistorCheckItem, label: "European resistors", help: "Draw resistors as boxes (IEC) instead of zigzags" },
+                    { toggle: m.euroGatesCheckItem, label: "IEC logic gates", help: "Draw gates as rectangles with symbols" },
+                    { toggle: m.showOhmCheckItem, label: "Show the Ω unit", help: "Write 1 kΩ rather than 1 k on resistors" },
+                    { toggle: m.conventionCheckItem, label: "Conventional current", help: "Dots move from + to −; off shows electron flow" },
+                ] },
+                { group: "Editing", items: [
+                    { toggle: m.smallGridCheckItem, label: "Small grid", help: "Snap parts to a finer grid" },
+                    { toggle: m.crossHairCheckItem, label: "Cursor cross hairs", help: "Lines across the canvas at the pointer" },
+                    { toggle: m.mouseWheelEditCheckItem, label: "Change values with the mouse wheel", help: "Scroll over a part to step its value" },
+                    { toggle: m.noEditCheckItem, label: "Lock the circuit", help: "View only: no changes until you turn this off", hidden: Exam.active },
+                ] },
+            ],
+            moreOptions: () => this.menuPerformed("options", "other"),
+            shortcuts: () => this.menuPerformed("options", "shortcuts"),
+            repaint: () => this.app.repaint(),
+        });
+        CirSim.dialogShowing = { isShowing: () => d.open, closeDialog: () => d.close(), enterPressed: () => d.close() };
+        d.addEventListener("close", () => { if (CirSim.dialogShowing?.isShowing && !d.open) CirSim.dialogShowing = null; });
+    }
+
     menuPerformed(menu: string, item: string): void {
         const contextPanel = this.app.ui?.contextPanel;
 
@@ -67,7 +94,7 @@ export class CommandManager {
             if (Exam.active)
                 this.app.ui?.showToast?.(Locale.LS("Editing is locked"));
             else
-                window.alert(Locale.LS("Editing disabled.  Re-enable from the Options menu."));
+                window.alert(Locale.LS("The circuit is locked. Unlock it in View › Settings."));
             return;
         }
         if (item == "about")
@@ -137,6 +164,8 @@ export class CommandManager {
         }
         if (menu == "options" && item == "other")
             this.doEdit(new EditOptions(this.app, this.app.sim));
+        if (menu == "options" && item == "settings")
+            this.openSettings();
         if (item == "devtools")
             CommandManager.toggleDevTools();
         if (item == "undo")

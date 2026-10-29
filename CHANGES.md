@@ -305,6 +305,55 @@ License, version 2 or (at your option) any later version.
 - `circuitjs/about.html` credits ngspice (modified BSD), EEcircuit-engine (MIT)
   and Plus Jakarta Sans (OFL).
 
+## 2026-10-30
+
+### New lab chrome: app bar, action bar, Inspector
+
+- New `ts/levantate/chrome/` (`appBar.ts`, `actionBar.ts`, `inspector.ts`,
+  `settings.ts`, `icons.ts`, `chrome.css`):
+  - **App bar** (the menu bar, now 44 px): Maestro mark and "Simulation Lab",
+    the circuit's name and an "Unsaved changes" status, the menus, and
+    search / light-dark theme / help on the right. In exams (compact bar) the
+    run controls move up into it.
+  - **Action bar** (the toolbar row): undo, redo, cut, copy, paste,
+    duplicate, rotate, flip and delete; a hint for the tool or selection
+    (replaces "Mode: …"); Running/Stopped, Reset, Freeze and the speed slider
+    on the right. Part buttons (in the tool dock and Parts menu) and zoom
+    buttons (in the zoom pill) are no longer repeated here. It now shows by
+    default even when the page opens with a circuit.
+  - **Inspector** (the side panel): Simulation (time, time step, speed
+    against real time), Animation (Current dots; Power glow only in power
+    view), Live controls (part sliders, with a hint when there are none) and
+    About and licence. The "Current Circuit" label and the empty iframe are
+    gone.
+  - **Settings** dialog (View › Settings…) for the options students rarely
+    change: European resistors, IEC gates, Ω unit, conventional current,
+    small grid, cross hairs, mouse-wheel editing, Lock the circuit (hidden in
+    exams), with links to Other Options ("Colours and more…") and shortcuts.
+- ts/Menus.ts: menus rebuilt and renamed: File → **Circuit** (Export
+  submenu; Print, Dropbox and Create Subcircuit left it), **Edit** (Delete
+  added; zoom items left for the zoom pill; Convert Wires moved here from
+  Tools), Draw → **Parts** (groups renamed for students; Create / Manage
+  subcircuits; Select, Pan, Move the selection; Drag Row/Column/Post stay on
+  their keyboard modifiers), Scopes → **Graphs**, Options → **View** (the
+  everyday toggles, Settings…, Keyboard shortcuts…), Tools removed,
+  Circuits → **Examples**. Every option keeps its state object and storage
+  key, so saved circuits and preferences are unchanged.
+- ts/Toolbar.ts: the row is built by `actionBar.ts`; the part icons stay for
+  the tool dock.
+- ts/UIManager.ts: app bar height 44 px; Inspector width 200–240 px; run
+  controls in the action bar (`runControlsShown()`); `Scrollbar.setWidth()`;
+  per-frame hint, save status and Inspector numbers (`updateChrome`); part
+  sliders go in the Inspector's Live controls; the Help button moves to the
+  app bar.
+- ts/CommandManager.ts: `options/settings` opens the Settings dialog.
+- ts/CommandPaletteRegistry.ts: entries renamed to match the menus.
+- ts/levantate/canvas/viewToggles.ts: Run and Freeze appear in the zoom pill
+  only when no bar shows the run controls.
+- ts/levantate/exam/exam.ts, bridge/bridge.ts: menu keys `circuit` /
+  `examples`; the About link is the Inspector's footer.
+- ts/levantate/help/content.ts, tour.ts: describe the new layout.
+
 ## 2026-10-29
 
 ### Maestro welcome circuit

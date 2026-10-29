@@ -18,6 +18,7 @@
 */
 // Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap / Show Tool Dock / Show Graphs / Show Side Panel; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
 // Modified by Levantate Labs, 2026-10-29: the default circuit is the Maestro welcome on a first visit, a blank canvas after that; Add Dot Matrix Display. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-30: menus rebuilt for students (Circuit, Edit, Parts, Graphs, View, Examples; rare options moved to a Settings dialog) inside the new app bar. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -27,6 +28,7 @@ import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
 import { moduleBaseURL } from "./ModuleBase";
+import { AppBar } from "./levantate/chrome/appBar";
 
 // ---- State classes used by UIManager ----
 
@@ -309,8 +311,10 @@ export class Menus {
     }
 
     private menuBarRow: HTMLTableRowElement = document.createElement('tr');
-    // top-level menu cells by key ("file", "edit", ..., "circuits"), for exam mode
+    // top-level menu cells by key ("circuit", "edit", ..., "examples"), for exam mode
     topItems: Map<string, HTMLElement> = new Map();
+    // Levantate Labs: the app bar the menus sit in (levantate/chrome/appBar.ts)
+    appBar: AppBar | null = null;
 
     init(): void {
         const os = navigator.platform;
@@ -325,11 +329,12 @@ export class Menus {
         // Inner bar matches the Java gwt-MenuBar structure
         const bar = document.createElement('div');
         bar.setAttribute('tabindex', '0');
-        bar.setAttribute('role', 'menubar');
         bar.className = 'gwt-MenuBar gwt-MenuBar-horizontal';
         bar.style.cssText = 'outline: 0; position: absolute; inset: 0;';
+        bar.setAttribute('role', 'banner');
 
         const table = document.createElement('table');
+        table.setAttribute('role', 'menubar');
         table.addEventListener('click', () => closeAllMenus());
         const tbody = document.createElement('tbody');
         this.menuBarRow = document.createElement('tr');
@@ -349,49 +354,48 @@ export class Menus {
 
         const ck = this.ctrlMetaKey;
 
-        // ---- File menu ----
+        // ---- Circuit menu (upstream's File) ----
         const fileMenu = new Menu(this.app);
         if (this.isElectron())
-            fileMenu.addCommand(shortcutHtml("window", "New Window...", Locale.LS(ck + "N")), "file", "newwindow");
+            fileMenu.addCommand(shortcutHtml("window", "New window", Locale.LS(ck + "N")), "file", "newwindow");
 
-        fileMenu.addCommand(iconHtml("doc-new", "New Blank Circuit"), "file", "newblankcircuit");
+        fileMenu.addCommand(iconHtml("doc-new", "New blank circuit"), "file", "newblankcircuit");
 
         fileMenu.addMenuItem(this.importFromLocalFileItem,
-            shortcutHtml("folder", "Open File...", Locale.LS(ck + "O")), "file", "importfromlocalfile");
+            shortcutHtml("folder", "Open file…", Locale.LS(ck + "O")), "file", "importfromlocalfile");
         this.importFromLocalFileItem.setEnabled(typeof FileReader !== 'undefined');
 
         fileMenu.addMenuItem(this.importFromTextItem,
-            iconHtml("doc-text", "Import From Text..."), "file", "importfromtext");
-        fileMenu.addMenuItem(this.importFromDropboxItem,
-            iconHtml("dropbox", "Import From Dropbox..."), "file", "importfromdropbox");
+            iconHtml("doc-text", "Open from text…"), "file", "importfromtext");
 
         if (this.isElectron()) {
             fileMenu.addMenuItem(this.saveFileItem,
                 shortcutHtml("floppy", "Save", Locale.LS(ck + "S")), "file", "save");
-            fileMenu.addCommand(iconHtml("floppy", "Save As..."), "file", "saveas");
+            fileMenu.addCommand(iconHtml("floppy", "Save as…"), "file", "saveas");
         } else {
             fileMenu.addMenuItem(this.exportAsLocalFileItem,
-                shortcutHtml("floppy", "Save As...", Locale.LS(ck + "S")), "file", "exportaslocalfile");
+                shortcutHtml("floppy", "Save to this device…", Locale.LS(ck + "S")), "file", "exportaslocalfile");
             this.exportAsLocalFileItem.setEnabled("download" in document.createElement("a"));
         }
 
-        fileMenu.addMenuItem(this.exportAsUrlItem,
-            iconHtml("export", "Export As Link..."), "file", "exportasurl");
-        fileMenu.addMenuItem(this.exportAsTextItem,
-            iconHtml("export", "Export As Text..."), "file", "exportastext");
-        fileMenu.addCommand(iconHtml("image", "Export As Image..."),                    "file", "exportasimage");
-        fileMenu.addCommand(iconHtml("image", "Copy Circuit Image to Clipboard"),       "file", "copypng");
-        fileMenu.addCommand(iconHtml("image", "Export As SVG..."),                      "file", "exportassvg");
-        fileMenu.addCommand(iconHtml("microchip", "Create Subcircuit..."),              "file", "createsubcircuit");
-        fileMenu.addCommand(iconHtml("magic", "Find DC Operating Point"),               "file", "dcanalysis");
+        const exportMenu = new Menu(this.app);
+        exportMenu.addCommand(iconHtml("image", "Image (PNG)…"),               "file", "exportasimage");
+        exportMenu.addCommand(iconHtml("image", "Copy image to clipboard"),    "file", "copypng");
+        exportMenu.addCommand(iconHtml("image", "Vector image (SVG)…"),        "file", "exportassvg");
+        exportMenu.addMenuItem(this.exportAsTextItem,
+            iconHtml("export", "Circuit as text…"), "file", "exportastext");
+        exportMenu.addMenuItem(this.exportAsUrlItem,
+            iconHtml("export", "Link to this circuit…"), "file", "exportasurl");
+        fileMenu.addSubmenu(subheadHtml + Locale.LS("Export"), exportMenu);
+        fileMenu.addSeparator();
+        fileMenu.addCommand(iconHtml("magic", "Solve DC operating point"),            "file", "dcanalysis");
         fileMenu.addMenuItem(this.recoverItem,
-            iconHtml("back-in-time", "Recover Auto-Save"), "file", "recover");
-        fileMenu.addMenuItem(this.printItem,
-            shortcutHtml("print", "Print...", Locale.LS(ck + "P")), "file", "print");
+            iconHtml("back-in-time", "Restore last session"), "file", "recover");
         fileMenu.addSeparator();
-        fileMenu.addCommand(iconHtml("resize-full-alt", "Toggle Full Screen"), "view", "fullscreen");
-        fileMenu.addSeparator();
-        fileMenu.addMenuItem(this.aboutItem, iconHtml("info-circled", "About..."), "file", "about");
+        fileMenu.addCommand(iconHtml("resize-full-alt", "Full screen"), "view", "fullscreen");
+        fileMenu.addMenuItem(this.aboutItem, iconHtml("info-circled", "About and licence"), "file", "about");
+        // (Print, Dropbox and Create Subcircuit leave this menu: printing is in
+        // the browser, there's no Dropbox in this fork, subcircuits are in Parts)
 
         // ---- Edit menu ----
         const editMenu = new Menu(this.app);
@@ -402,20 +406,19 @@ export class Menus {
         editMenu.addMenuItem(this.copyItem,      shortcutHtml("copy",       "Copy",       Locale.LS(ck + "C")), "edit", "copy");
         editMenu.addMenuItem(this.pasteItem,     shortcutHtml("paste",      "Paste",      Locale.LS(ck + "V")), "edit", "paste");
         editMenu.addCommand( shortcutHtml("clone",      "Duplicate",   Locale.LS(ck + "D")), "edit", "duplicate");
+        editMenu.addCommand( shortcutHtml("none", "Delete",     Locale.LS("Del")),   "edit", "delete");
+        editMenu.addMenuItem(this.selectAllItem, shortcutHtml("select-all", "Select all", Locale.LS(ck + "A")), "edit", "selectAll");
         editMenu.addSeparator();
-        editMenu.addMenuItem(this.selectAllItem, shortcutHtml("select-all", "Select All", Locale.LS(ck + "A")), "edit", "selectAll");
+        editMenu.addMenuItem(this.rotateCCWItem,  iconHtml("ccw",    "Rotate left"),        "edit", "rotateCCW");
+        editMenu.addMenuItem(this.rotateCWItem,   iconHtml("cw",     "Rotate right"),       "edit", "rotateCW");
+        editMenu.addMenuItem(this.mirrorXItem,    iconHtml("flip-x", "Flip horizontally"),  "edit", "mirrorX");
+        editMenu.addMenuItem(this.mirrorYItem,    iconHtml("flip-y", "Flip vertically"),    "edit", "mirrorY");
         editMenu.addSeparator();
-        editMenu.addCommand(shortcutHtml("search", "Find Component/Command...", "/"),          "edit", "search");
-        editMenu.addCommand(iconHtml("target", Locale.weAreInUS(false) ? "Center Circuit" : "Centre Circuit"), "edit", "centercircuit");
-        editMenu.addCommand(shortcutHtml("zoom-11",  "Zoom 100%", "0"), "zoom", "zoom100");
-        editMenu.addCommand(shortcutHtml("zoom-in",  "Zoom In",   "+"), "zoom", "zoomin");
-        editMenu.addCommand(shortcutHtml("zoom-out", "Zoom Out",  "-"), "zoom", "zoomout");
-        editMenu.addMenuItem(this.mirrorXItem,    iconHtml("flip-x", "Mirror X"),    "edit", "mirrorX");
-        editMenu.addMenuItem(this.mirrorYItem,    iconHtml("flip-y", "Mirror Y"),    "edit", "mirrorY");
-        editMenu.addMenuItem(this.rotateCCWItem,  iconHtml("ccw",    "Rotate CCW"),  "edit", "rotateCCW");
-        editMenu.addMenuItem(this.rotateCWItem,   iconHtml("cw",     "Rotate CW"),   "edit", "rotateCW");
+        editMenu.addCommand(shortcutHtml("search", "Search parts and commands…", "/"),  "edit", "search");
+        editMenu.addCommand(iconHtml("target", Locale.weAreInUS(false) ? "Center the circuit" : "Centre the circuit"), "edit", "centercircuit");
+        editMenu.addCommand(iconHtml("none", "Convert wires to routed wires"), "tools", "convertWires");
 
-        // ---- Draw menu + right-click popup (same content, built twice) ----
+        // ---- Parts menu (upstream's Draw) + right-click popup (same content, built twice) ----
         const drawMenu = new Menu(this.app);
         const popupMenu = new Menu(this.app);
         this.subcircuitMenuBar = [new Menu(this.app), new Menu(this.app)];
@@ -423,83 +426,79 @@ export class Menus {
         this.composeMainMenu(drawMenu,  1);
         this.mainMenuBar = popupMenu.ul;
 
-        // ---- Scopes menu ----
+        // ---- Graphs menu (upstream's Scopes) ----
         const scopesMenu = new Menu(this.app);
-        scopesMenu.addMenuItem(this.stackAllItem,    iconHtml("lines",          "Stack All"),    "scopes", "stackAll");
-        scopesMenu.addMenuItem(this.unstackAllItem,  iconHtml("columns",        "Unstack All"),  "scopes", "unstackAll");
-        scopesMenu.addMenuItem(this.combineAllItem,  iconHtml("object-group",   "Combine All"),  "scopes", "combineAll");
-        scopesMenu.addMenuItem(this.separateAllItem, iconHtml("object-ungroup", "Separate All"), "scopes", "separateAll");
+        scopesMenu.addMenuItem(this.stackAllItem,    iconHtml("lines",          "Stack all graphs"),    "scopes", "stackAll");
+        scopesMenu.addMenuItem(this.unstackAllItem,  iconHtml("columns",        "Unstack graphs"),      "scopes", "unstackAll");
+        scopesMenu.addMenuItem(this.combineAllItem,  iconHtml("object-group",   "Overlay all graphs"),  "scopes", "combineAll");
+        scopesMenu.addMenuItem(this.separateAllItem, iconHtml("object-ungroup", "Separate graphs"),     "scopes", "separateAll");
 
-        // ---- Options menu ----
+        // ---- View menu (the everyday half of upstream's Options) ----
+        // The other options keep their state objects and commands (set here and in
+        // UIManager) and are toggled from View › Settings (levantate/chrome/settings.ts).
         const optMenu = new Menu(this.app);
-        optMenu.addCheckItem(this.dotsCheckItem, "Show Current");
-        optMenu.addCheckItem(this.voltsCheckItem, "Show Voltage");
+        optMenu.addCheckItem(this.dotsCheckItem, "Current dots");
+        optMenu.addCheckItem(this.voltsCheckItem, "Voltage colours");
         this.voltsCheckItem.setCommand({ execute: () => {
             if (this.voltsCheckItem.getState()) this.powerCheckItem.setState(false);
             this.app.setPowerBarEnable();
         }});
-        optMenu.addCheckItem(this.powerCheckItem, "Show Power");
+        optMenu.addCheckItem(this.powerCheckItem, "Power view");
         this.powerCheckItem.setCommand({ execute: () => {
             if (this.powerCheckItem.getState()) this.voltsCheckItem.setState(false);
             this.app.setPowerBarEnable();
         }});
-        optMenu.addCheckItem(this.showValuesCheckItem, "Show Values");
+        optMenu.addCheckItem(this.showValuesCheckItem, "Values on parts");
         //optMenu.addCheckItem(this.conductanceCheckItem, "Show Conductance");
-        optMenu.addCheckItem(this.smallGridCheckItem, "Small Grid");
-        this.smallGridCheckItem.setCommand({ execute: () => this.app.setGrid() });
-        optMenu.addCheckItem(this.toolbarCheckItem, "Toolbar");
-        this.toolbarCheckItem.setCommand({ execute: () => this.app.ui?.setToolbar() });
-        optMenu.addCheckItem(this.dotGridCheckItem, "Show Dot Grid");
+        optMenu.addSeparator();
+        optMenu.addCheckItem(this.dotGridCheckItem, "Dot grid");
         this.dotGridCheckItem.setCommand({ execute: () => {
             this.app.ui?.setOptionInStorage("dotGrid", this.dotGridCheckItem.getState());
             this.app.repaint();
         } });
-        optMenu.addCheckItem(this.graphsCheckItem, "Show Graphs");
+        optMenu.addCheckItem(this.graphsCheckItem, "Graphs");
         this.graphsCheckItem.setCommand({ execute: () => this.app.ui?.setGraphsShown(this.graphsCheckItem.getState()) });
-        optMenu.addCheckItem(this.sidePanelCheckItem, "Show Side Panel");
+        optMenu.addCheckItem(this.sidePanelCheckItem, "Inspector");
         this.sidePanelCheckItem.setCommand({ execute: () => this.app.ui?.setSidePanelShown(this.sidePanelCheckItem.getState()) });
-        optMenu.addCheckItem(this.dockCheckItem, "Show Tool Dock");
+        optMenu.addCheckItem(this.toolbarCheckItem, "Action bar");
+        this.toolbarCheckItem.setCommand({ execute: () => this.app.ui?.setToolbar() });
+        optMenu.addCheckItem(this.dockCheckItem, "Tool dock");
         this.dockCheckItem.setCommand({ execute: () => {
             this.app.ui?.setOptionInStorage("dock", this.dockCheckItem.getState());
             this.app.repaint();
         } });
-        optMenu.addCheckItem(this.minimapCheckItem, "Show Minimap");
+        optMenu.addCheckItem(this.minimapCheckItem, "Minimap");
         this.minimapCheckItem.setCommand({ execute: () => {
             this.app.ui?.setOptionInStorage("minimap", this.minimapCheckItem.getState());
             this.app.repaint();
         } });
-        optMenu.addCheckItem(this.crossHairCheckItem, "Show Cursor Cross Hairs");
+        optMenu.addSeparator();
+        optMenu.addCheckItem(this.printableCheckItem, "Light theme");
+        optMenu.addSeparator();
+        optMenu.addCommand(subheadHtml + Locale.LS("Settings…"), "options", "settings");
+        optMenu.addCommand(subheadHtml + Locale.LS("Keyboard shortcuts…"), "options", "shortcuts");
+        if (this.isElectron())
+            optMenu.addCommand(subheadHtml + Locale.LS("Developer tools"), "options", "devtools");
+        this.smallGridCheckItem.setCommand({ execute: () => this.app.setGrid() });
         this.crossHairCheckItem.setCommand({ execute: () =>
             this.app.ui?.setOptionInStorage("crossHair", this.crossHairCheckItem.getState()) });
-        optMenu.addCheckItem(this.euroResistorCheckItem, "European Resistors");
-        optMenu.addCheckItem(this.showOhmCheckItem, "Show Ω Unit");
-        optMenu.addCheckItem(this.euroGatesCheckItem, "IEC Gates");
-        optMenu.addCheckItem(this.printableCheckItem, "White Background");
-        optMenu.addCheckItem(this.conventionCheckItem, "Conventional Current Motion");
-        optMenu.addCheckItem(this.noEditCheckItem, "Disable Editing");
-        optMenu.addCheckItem(this.mouseWheelEditCheckItem, "Edit Values With Mouse Wheel");
         this.mouseWheelEditCheckItem.setCommand({ execute: () =>
             this.app.ui?.setOptionInStorage("mouseWheelEdit", this.mouseWheelEditCheckItem.getState()) });
-        optMenu.addCommand(subheadHtml + Locale.LS("Shortcuts..."),    "options", "shortcuts");
-        optMenu.addMenuItem(this.optionsItem, subheadHtml + Locale.LS("Other Options..."), "options", "other");
-        if (this.isElectron())
-            optMenu.addCommand(subheadHtml + Locale.LS("Toggle Dev Tools"), "options", "devtools");
 
-        // ---- Tools menu ----
-        const toolsMenu = new Menu(this.app);
-        toolsMenu.addCommand(Locale.LS("Convert Wires to Routed Wires"), "tools", "convertWires");
-        toolsMenu.addCommand(Locale.LS("Subcircuit Manager"),            "tools", "subcircuits");
-        // if (TestCreator.enabled) toolsMenu.addCommand(Locale.LS("Create Test"), "tools", "createTest");
-
-        // ---- Assemble horizontal bar ----
-        this.topItems.set("file",    this.addTopItem(this.menuBarRow, Locale.LS("File"),    fileMenu));
+        // ---- Assemble the menus ----
+        this.topItems.set("circuit", this.addTopItem(this.menuBarRow, Locale.LS("Circuit"), fileMenu));
         this.topItems.set("edit",    this.addTopItem(this.menuBarRow, Locale.LS("Edit"),    editMenu));
-        this.topItems.set("draw",    this.addTopItem(this.menuBarRow, Locale.LS("Draw"),    drawMenu));
-        this.topItems.set("scopes",  this.addTopItem(this.menuBarRow, Locale.LS("Scopes"),  scopesMenu));
-        this.topItems.set("options", this.addTopItem(this.menuBarRow, Locale.LS("Options"), optMenu));
-        this.topItems.set("tools",   this.addTopItem(this.menuBarRow, Locale.LS("Tools"),   toolsMenu));
-        // the Dropbox script isn't loaded in this fork (no third-party scripts)
-        this.importFromDropboxItem._li?.classList.add("lvHidden");
+        this.topItems.set("parts",   this.addTopItem(this.menuBarRow, Locale.LS("Parts"),   drawMenu));
+        this.topItems.set("graphs",  this.addTopItem(this.menuBarRow, Locale.LS("Graphs"),  scopesMenu));
+        this.topItems.set("view",    this.addTopItem(this.menuBarRow, Locale.LS("View"),    optMenu));
+        // (Examples is added when the list loads: processSetupList)
+
+        // ---- The app bar around them ----
+        this.appBar = new AppBar({
+            search: () => this.app.commands.menuPerformed("edit", "search"),
+            toggleTheme: () => { this.printableCheckItem.toggle(); this.app.repaint(); },
+            isDark: () => !this.printableCheckItem.getState(),
+        }, bar, table);
 
         // ---- Element right-click context menu ----
         this.buildElmMenuBar();
@@ -551,7 +550,7 @@ export class Menus {
             "Add Cross Switch",            "CrossSwitchElm",
             "Add Gyrator",                 "GyratorElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Passive Components"), passMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Passive parts and switches"), passMenu);
 
         const inputMenu = new Menu(this.app);
         this.makeClassCheckItems(inputMenu, [
@@ -574,7 +573,7 @@ export class Menus {
             "Add Data Input",                       "DataInputElm",
             "Add External Voltage (JavaScript)",    "ExtVoltageElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Inputs and Sources"), inputMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Sources"), inputMenu);
 
         const outputMenu = new Menu(this.app);
         this.makeClassCheckItems(outputMenu, [
@@ -602,7 +601,7 @@ export class Menus {
             "Add 3-Phase Motor",              "ThreePhaseMotorElm",
             "Add Wattmeter (old)",            "WattmeterElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Outputs and Labels"), outputMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Meters, displays and labels"), outputMenu);
 
         // need these registered before unijunction element setup
         this.app.register("CCVSElm", this.app.constructElement("CCVSElm", 0, 0));
@@ -628,7 +627,7 @@ export class Menus {
             "Add Triode",                         "TriodeElm",
             "Add Unijunction Transistor",         "UnijunctionElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Active Components"), activeMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Semiconductors"), activeMenu);
 
         // do these later so all the other elements are added to the map first
         const activeBlocMenu = new Menu(this.app);
@@ -661,7 +660,7 @@ export class Menus {
             "Add Motor Protection Switch",                    "MotorProtectionSwitchElm",
             "Add Subcircuit Instance",                        "SubcircuitElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Active Building Blocks"), activeBlocMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Op amps and building blocks"), activeBlocMenu);
 
         const gateMenu = new Menu(this.app);
         this.makeClassCheckItems(gateMenu, [
@@ -676,7 +675,7 @@ export class Menus {
             "Add XOR Gate",     "XorGateElm",
             "Add XNOR Gate",    "XnorGateElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Logic Gates, Input and Output"), gateMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Logic gates"), gateMenu);
 
         const chipMenu = new Menu(this.app);
         this.makeClassCheckItems(chipMenu, [
@@ -702,7 +701,7 @@ export class Menus {
             "Add Bus Transceiver",      "BusTransceiverElm",
             "Add Bus Splitter",         "BusSplitterElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Digital Chips"), chipMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Digital chips and memory"), chipMenu);
 
         const achipMenu = new Menu(this.app);
         this.makeClassCheckItems(achipMenu, [
@@ -713,21 +712,24 @@ export class Menus {
             "Add VCO",              "VCOElm",
             "Add Monostable",       "MonostableElm",
         ]);
-        menu.addSubmenu(subheadHtml + Locale.LS("Analog and Hybrid Chips"), achipMenu);
+        menu.addSubmenu(subheadHtml + Locale.LS("Mixed-signal chips"), achipMenu);
 
         menu.addSubmenu(subheadHtml + Locale.LS("Subcircuits"), this.subcircuitMenuBar![num]);
+        if (num === 1) {
+            menu.addCommand(subheadHtml + Locale.LS("Create a subcircuit…"), "file", "createsubcircuit");
+            menu.addCommand(subheadHtml + Locale.LS("Manage subcircuits…"), "tools", "subcircuits");
+        }
 
-        const otherMenu = new Menu(this.app);
+        // tools (Drag Row, Column and Post stay on their keyboard modifiers)
+        menu.addSeparator();
         let mi: any;
-        mi = this.getClassCheckItem(Locale.LS("Drag All"),    "DragAll");    mi.setShortcut(Locale.LS("(Alt-drag)"));      otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Row"),    "DragRow");    mi.setShortcut(Locale.LS("(A-S-drag)"));      otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Column"), "DragColumn"); mi.setShortcut(this.isMac ? Locale.LS("(A-Cmd-drag)") : Locale.LS("(A-M-drag)")); otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Selected"), "DragSelected"); otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Post"),   "DragPost");   mi.setShortcut("(" + this.ctrlMetaKey + "drag)"); otherMenu.addCheckboxItem(mi);
-        menu.addSubmenu(subheadHtml + Locale.LS("Drag"), otherMenu);
-
-        mi = this.getClassCheckItem(Locale.LS("Select/Drag Sel"), "Select");
-        mi.setShortcut(Locale.LS("(space or Shift-drag)"));
+        mi = this.getClassCheckItem(Locale.LS("Select"), "Select");
+        mi.setShortcut(Locale.LS("Esc"));
+        menu.addCheckboxItem(mi);
+        mi = this.getClassCheckItem(Locale.LS("Pan the view"), "DragAll");
+        mi.setShortcut(Locale.LS("Space-drag"));
+        menu.addCheckboxItem(mi);
+        mi = this.getClassCheckItem(Locale.LS("Move the selection"), "DragSelected");
         menu.addCheckboxItem(mi);
     }
 
@@ -763,8 +765,8 @@ export class Menus {
         const stack: Menu[] = [];
         const submenuStack: string[] = [""]; // submenu titles for palette circuit hints
         let currentMenu = new Menu(this.app);
-        const circuitsTop = this.addTopItem(this.menuBarRow, Locale.LS("Circuits"), currentMenu);
-        this.topItems.set("circuits", circuitsTop);
+        const circuitsTop = this.addTopItem(this.menuBarRow, Locale.LS("Examples"), currentMenu);
+        this.topItems.set("examples", circuitsTop);
         // (the examples list loads after startup, possibly after an exam began)
         if (Exam.active)
             circuitsTop.classList.add("lvHidden");

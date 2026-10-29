@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing; 2026-10-28: Help panel, tour and instrument styles. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-26: Maestro theme / batched drawing; 2026-10-28: Help panel, tour and instrument styles; 2026-10-30: app bar, action bar and Inspector styles. See CHANGES.md.
 import { CircuitElm } from "./CircuitElm";
 import { Graphics } from "./Graphics";
 import { Color } from "./Color";
@@ -17,6 +17,7 @@ import "./canvas2svg.js";
 import "./style.css";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./levantate/maestro.css";
+import "./levantate/chrome/chrome.css";
 import "./levantate/help/help.css";
 import "./levantate/instruments/instruments.css";
 

@@ -860,12 +860,11 @@ body.lvDock .toolbarSepParts { display: none !important; }
 
 /* ---- Freeze and inspect (levantate/canvas/freeze.ts) ---- */
 
-.sideButtons .freezeButton {
-    flex-basis: 100%;
+.runControls .freezeButton {
     color: var(--text);
 }
 
-.sideButtons .freezeButton.isFrozen {
+.runControls .freezeButton.isFrozen {
     background: var(--info-tint);
     border-color: transparent;
     color: var(--info);

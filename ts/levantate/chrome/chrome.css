@@ -1,0 +1,299 @@
+/*
+    Copyright (C) 2026 Levantate Labs
+
+    Styles for the lab's app bar, action bar, Inspector and Settings dialog
+    (levantate/chrome/*.ts). Part of the Levantate Labs fork of CircuitJS1,
+    distributed under the GNU General Public License, version 2 or (at your
+    option) any later version. See COPYING.txt. Loaded after maestro.css.
+*/
+
+/* ---- App bar (the menu bar) ---- */
+
+.gwt-MenuBar-horizontal.appBar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px 0 12px;
+    box-sizing: border-box;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+}
+
+.appBarBrand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+}
+
+.appBarBrand svg { display: block; }
+
+.appBarProduct {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.appBarName {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+.appBarName::before {
+    content: "/";
+    color: var(--text-faint);
+    font-weight: 500;
+}
+
+.appBarName:has(.appBarTitle:empty) { display: none; }
+
+.appBarTitle {
+    min-width: 48px;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-strong);
+    font-weight: 500;
+}
+
+.appBarStatus {
+    flex: none;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.appBarStatus:empty { display: none; }
+
+.appBar > table.appBarMenus {
+    height: 32px;
+    margin-left: 6px;
+    border-spacing: 2px 0;
+    flex: none;
+}
+
+.appBar td.gwt-MenuItem {
+    height: 32px;
+    padding: 0 10px;
+}
+
+.appBarSpacer { flex: 1 1 auto; min-width: 8px; }
+
+.appBarControls,
+.appBarRight {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+}
+
+.appBarControls:empty { display: none; }
+
+.appBarButton,
+.appBarRight > .helpButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.appBarButton:hover,
+.appBarRight > .helpButton:hover { background: var(--surface); color: var(--text-strong); }
+
+.appBarRight > .zoomPillSep { display: none; }
+
+.appBarRight > .helpButton.on { background: var(--surface); color: var(--text-strong); }
+
+/* ---- Action bar (the toolbar row) ---- */
+
+.toolbar.actionBar {
+    gap: 2px;
+    padding: 0 10px;
+}
+
+.actionBar .toolbarButton { width: 30px; height: 30px; }
+
+.actionBar .toolbarSep { margin: 0 5px; }
+
+.actionHint {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0 12px;
+    text-align: center;
+}
+
+.actionRunSlot { flex: none; display: flex; align-items: center; }
+
+/* ---- Run controls (in the action bar, or the app bar in exams) ---- */
+
+.runControls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.runControls .topButton {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+.runControls .topButton svg { flex: none; }
+
+.runSpeed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.runSpeed .sliderCanvas { display: block; }
+
+/* ---- Inspector (the side panel) ---- */
+
+.verticalPanel.inspector {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.verticalPanel.inspector > * { margin: 0; }
+
+.inspectorSection {
+    padding: 14px 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.inspectorSection > h2 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-strong);
+    letter-spacing: 0;
+}
+
+.inspectorStats {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 8px;
+    margin: 0;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.inspectorStats dt { color: var(--text-muted); }
+.inspectorStats dd { margin: 0; text-align: right; font-weight: 600; color: var(--text-strong); }
+
+.inspectorSlider + .inspectorSlider { margin-top: 10px; }
+
+.inspectorSlider > .sideLabel {
+    margin: 0 0 2px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.inspectorLive > * { margin: 0; }
+.inspectorLive > .sideLabel,
+.inspectorLive > div:not(.sliderCanvas) { margin-top: 8px; font-size: 12px; font-weight: 500; color: var(--text); }
+.inspectorLive > :first-child { margin-top: 0; }
+
+.inspectorEmpty {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.inspectorFoot {
+    margin-top: auto !important;
+    padding: 12px;
+}
+
+.inspectorFoot > .lvAboutLink { margin: 0; }
+
+/* ---- Settings dialog (levantate/chrome/settings.ts) ---- */
+
+dialog.circuitDialog.lvSettings {
+    width: min(440px, calc(100vw - 32px));
+    padding: 16px 18px 14px;
+}
+
+.lvSettings .propsHeader { margin-bottom: 4px; }
+
+.lvSettingsGroup {
+    margin: 10px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.lvSettingsGroup > legend {
+    padding: 0;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.lvSettingsRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 8px;
+    margin: 0 -8px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+}
+
+.lvSettingsRow:hover { background: var(--surface); }
+
+.lvSettingsRow input { margin: 3px 0 0; accent-color: var(--primary); flex: none; }
+
+.lvSettingsRow b { display: block; font-weight: 600; color: var(--text-strong); }
+.lvSettingsRow small { display: block; margin-top: 1px; font-size: 12px; color: var(--text-muted); }
+
+.lvSettingsFoot {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.lvSettingsFoot .lvSettingsDone {
+    margin-left: auto;
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-fg);
+}
+
+/* ---- Narrow screens ---- */
+
+@media only screen and (max-width: 600px) {
+    .appBarName,
+    .appBarRight { display: none; }
+
+    .toptriggerlabel { top: 12px; }
+
+    .gwt-MenuBar-horizontal.appBar > table.appBarMenus { top: 44px; height: auto; margin: 0; }
+
+    td.gwt-MenuItem > .menuDropdown { top: 44px; }
+
+    .actionHint { display: none; }
+}

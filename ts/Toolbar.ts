@@ -16,11 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-26: Maestro theme classes; 2026-10-30: the row is the action bar (levantate/chrome/actionBar.ts). See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { UIManager } from "./UIManager";
 import { Locale } from "./Locale";
 import { MyCommand } from "./MyCommand";
+import { buildActionBar } from "./levantate/chrome/actionBar";
 
 export class Toolbar {
     element: HTMLElement;
@@ -36,67 +38,28 @@ export class Toolbar {
     private paletteButtons: HTMLElement[] = [];
     private globalPopupCloserInstalled = false;
 
+    // Levantate Labs: the run controls' place in the bar (UIManager fills it)
+    runSlot: HTMLElement;
+
     constructor() {
-        // Modified by Levantate Labs, 2026-10-26: colours, spacing, hover and active
-        // states moved to CSS classes (levantate/maestro.css) for the Maestro theme.
+        // Modified by Levantate Labs, 2026-10-30: the row is now the action bar
+        // (levantate/chrome/actionBar.ts): edit tools, a hint and the run controls.
+        // Parts moved to the tool dock and the Parts menu, zoom to the zoom pill;
+        // the part icons below stay, the dock draws them.
         this.element = document.createElement('div');
         this.element.className = 'toolbar';
-
-        this.element.appendChild(this.createIconButton("reply",   "Undo", new MyCommand("edit", "undo")));
-        this.element.appendChild(this.createIconButton("forward", "Redo", new MyCommand("edit", "redo")));
-        this.element.appendChild(this.createIconButton("scissors", "Cut", new MyCommand("edit", "cut")));
-        this.element.appendChild(this.createIconButton("copy", "Copy", new MyCommand("edit", "copy")));
-        this.element.appendChild(this.createIconButton("paste", "Paste", new MyCommand("edit", "paste")));
-        this.element.appendChild(this.createIconButton("clone", "Duplicate", new MyCommand("edit", "duplicate")));
-        this.element.appendChild(this.createIconButton("search", "Find Component/Command...", new MyCommand("edit", "search")));
-
-        this.element.appendChild(Toolbar.separator());
-        this.element.appendChild(this.createIconButton("zoom-11", "Zoom 100%", new MyCommand("zoom", "zoom100")));
-        this.element.appendChild(this.createIconButton("zoom-in", "Zoom In", new MyCommand("zoom", "zoomin")));
-        this.element.appendChild(this.createIconButton("zoom-out", "Zoom Out", new MyCommand("zoom", "zoomout")));
-
-        // (the parts group hides when the floating tool dock is on; levantate/canvas/dock.ts)
-        const partsSep = Toolbar.separator();
-        partsSep.classList.add("toolbarSepParts");
-        this.element.appendChild(partsSep);
-        this.element.appendChild(this.createIconButtonForClass(this.wireIcon, "WireElm"));
-        this.resistorButton = this.createIconButtonForClass(this.resistorIcon, "ResistorElm");
-        this.element.appendChild(this.resistorButton);
-        this.element.appendChild(this.createIconButtonForClass(this.groundIcon, "GroundElm"));
-        const capacitorInfo = [this.capacitorIcon, "CapacitorElm", this.polarCapacitorIcon, "PolarCapacitorElm"];
-        this.element.appendChild(this.createButtonSet(capacitorInfo));
-        this.element.appendChild(this.createIconButtonForClass(this.inductIcon, "InductorElm"));
-        this.element.appendChild(this.createIconButtonForClass(this.diodeIcon, "DiodeElm"));
-        const srcInfo = [this.voltage2Icon, "DCVoltageElm", this.acSrcIcon, "ACVoltageElm"];
-        this.element.appendChild(this.createButtonSet(srcInfo));
-        this.element.appendChild(this.createIconButtonForClass(this.railIcon, "RailElm"));
-
-        const switchInfo = [this.switchIcon, "SwitchElm", this.spdtIcon, "Switch2Elm", this.aswitch1Icon, "AnalogSwitchElm",
-                            this.aswitch2Icon, "AnalogSwitch2Elm"];
-        this.element.appendChild(this.createButtonSet(switchInfo));
-
-        const opAmpInfo = [this.opAmpBotIcon, "OpAmpElm", this.opAmpTopIcon, "OpAmpSwapElm"];
-        this.element.appendChild(this.createButtonSet(opAmpInfo));
-
-        const transistorInfo = [this.transistorIcon, "NTransistorElm", this.pnpTransistorIcon, "PTransistorElm"];
-        this.element.appendChild(this.createButtonSet(transistorInfo));
-
-        const fetInfo = [this.fetIcon, "NMosfetElm", this.fetIcon2, "PMosfetElm"];
-        this.element.appendChild(this.createButtonSet(fetInfo));
-
-        this.element.appendChild(this.createIconButtonForClass(this.inverterIcon, "InverterElm"));
-        const gateInfo = [this.andIcon, "AndGateElm", this.nandIcon, "NandGateElm",
-                          this.orIcon, "OrGateElm", this.norIcon, "NorGateElm", this.xorIcon, "XorGateElm",
-                          this.xnorIcon, "XnorGateElm"];
-        this.element.appendChild(this.createButtonSet(gateInfo));
-
-        // Create and add the mode label
-        this.modeLabel = document.createElement('span');
-        this.styleModeLabel(this.modeLabel);
-        this.element.appendChild(this.modeLabel);
+        const { hint, runSlot } = buildActionBar(this.element, {
+            run: (menu, item) => new MyCommand(menu, item).execute(),
+        });
+        this.modeLabel = hint;
+        this.runSlot = runSlot;
+        this.resistorButton = document.createElement('span');
     }
 
-    setModeLabel(text: string): void { this.modeLabel.textContent = text; }
+    setModeLabel(text: string): void {
+        if (this.modeLabel.textContent !== text)
+            this.modeLabel.textContent = text;
+    }
 
     private static separator(): HTMLElement {
         const sep = document.createElement('span');

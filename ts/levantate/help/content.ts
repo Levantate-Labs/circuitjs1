@@ -49,10 +49,15 @@ export const HELP_SECTIONS: HelpSection[] = [
 moving dots show current and wire colours show voltage.</p>
 <ul>
   <li><b>Canvas</b>: the dotted area in the middle, where you build.</li>
-  <li><b>Tool dock</b>: the bar at the bottom with the common parts.</li>
-  <li><b>Side panel</b>: Run/Stop, Reset, Freeze and the speed sliders.</li>
+  <li><b>App bar</b>: along the top; the circuit's name and the menus (Circuit, Edit, Parts,
+      Graphs, View, Examples), with search, the theme and this help on the right.</li>
+  <li><b>Action bar</b>: under it; undo, copy and paste, rotate and flip on the left, and
+      Running/Stopped, Reset, Freeze and Speed on the right.</li>
+  <li><b>Tool dock</b>: the bar at the bottom of the canvas with the common parts.</li>
+  <li><b>Inspector</b>: the panel on the right; simulated time, animation sliders and live
+      controls for adjustable parts.</li>
   <li><b>Graphs</b>: the strip along the bottom that plots values over time.</li>
-  <li><b>Zoom pill</b>: top right; zoom, and buttons to hide the graphs or side panel.</li>
+  <li><b>Zoom pill</b>: top right of the canvas; zoom, and buttons to hide the graphs or the Inspector.</li>
 </ul>
 <p>New here? <a href="#" data-help-action="tour">Take the 1-minute tour</a>.</p>`,
         keywords: "welcome intro overview basics tour first time",
@@ -82,7 +87,7 @@ connected. Drag it onto the other terminal.</p>`,
     {
         id: "parts",
         title: "Finding parts",
-        summary: "The dock, the search box and the Draw menu.",
+        summary: "The dock, the search box and the Parts menu.",
         body: `
 <p>The dock has the parts you will use most: wire, resistor, capacitor, inductor, diode,
 voltage source, ground, switch and op amp.</p>
@@ -90,8 +95,8 @@ voltage source, ground, switch and op amp.</p>
 and type a name, for example <i>transistor</i>, <i>LED</i>, <i>AC source</i> or <i>555</i>.
 The <b>Draw</b> menu lists every part by group.</p>
 <p>Some parts have variants (for example an NPN or PNP transistor); pick them from the
-search results or the Draw menu.</p>`,
-        keywords: "dock search palette draw menu transistor led source ac dc component",
+search results or the Parts menu.</p>`,
+        keywords: "dock search palette parts draw menu transistor led source ac dc component",
     },
     {
         id: "memory",
@@ -107,13 +112,13 @@ address 0, 255 at 1, 64 at 2 and 32 at 3. You can also load the contents from a 
 <b>OE</b> must be low (connected to ground) for the data pins to drive anything.</p>
 <p>The <b>LED array</b> is a grid of LEDs: each one lights when its row pin is higher than its
 column pin. Displays light one column at a time, fast enough that your eye sees the whole
-picture. Open <b>Circuits › Maestro › Maestro Welcome</b> to see a counter and a ROM draw the
+picture. Open <b>Examples › Maestro › Maestro Welcome</b> to see a counter and a ROM draw the
 Maestro M, then change the ROM's contents to draw your own letter.</p>
-<p>The <b>dot matrix display</b> (Draw › Outputs and Labels) is a small screen of tiny LEDs with
+<p>The <b>dot matrix display</b> (Parts › Meters, displays and labels) is a small screen of tiny LEDs with
 its own memory. Put a column number on the <b>X</b> pins, a row number on the <b>Y</b> pins
 and the LED's state on <b>D</b>; a rising edge on <b>WR</b> stores it, and <b>CLR</b> (high)
 turns every LED off. (0, 0) is the top left. Click it to set its width, height and colour.
-<b>Circuits › Maestro › Dot Matrix Display</b> shows a counter and a ROM writing a sign.</p>
+<b>Examples › Maestro › Dot Matrix Display</b> shows a counter and a ROM writing a sign.</p>
 <p class="helpTip">In the ROM's numbers the top data pin (the highest D) is the biggest bit, 128 for
 8 data bits, so 255 lights a whole column and 128 only its top LED.</p>`,
         keywords: "rom ram sram memory eeprom chip address data contents led array matrix display multiplex digital lookup table dot screen sign pixel",
@@ -146,7 +151,7 @@ everything you changed while it was open.</p>`,
         title: "Running the simulation",
         summary: "Run, stop, reset, speed and what the colours mean.",
         body: `
-<p>The circuit runs as soon as it is built. <b>Running</b> / <b>Stopped</b> in the side panel
+<p>The circuit runs as soon as it is built. <b>Running</b> / <b>Stopped</b> in the action bar
 shows the state; click it to pause or continue. <b>Reset</b> starts again from time zero with
 every capacitor and inductor empty.</p>
 <ul>
@@ -154,9 +159,10 @@ every capacitor and inductor empty.</p>
       <span class="helpSwatch neg"></span> coral is negative and <span class="helpSwatch zero"></span>
       grey is 0 V.</li>
   <li><b>Moving dots</b> show current. Faster dots mean more current; their direction is the
-      direction of conventional current (Options menu to change).</li>
-  <li><b>Simulation Speed</b> changes how fast simulated time passes.
-      <b>Current Speed</b> only changes how fast the dots move.</li>
+      direction of conventional current (View › Settings to change).</li>
+  <li><b>Speed</b> (action bar) changes how fast simulated time passes; the Inspector shows
+      how that compares with real time. <b>Current dots</b> (Inspector) only changes how fast
+      the dots move.</li>
 </ul>
 <p>The time since the last reset is shown at the bottom right.</p>`,
         keywords: "run stop pause reset speed colour color voltage current dots time",
@@ -171,7 +177,7 @@ every capacitor and inductor empty.</p>
   <li><b>Hover a terminal</b> to see the voltage at that point.</li>
   <li><b>Click a part</b> to keep its readings open in the properties panel.</li>
 </ul>
-<p><b>Freeze</b> (side panel) stops the circuit at the current instant and labels it:
+<p><b>Freeze</b> (action bar) stops the circuit at the current instant and labels it:
 the current through every part with an arrow for its direction, arrows on the wires, and
 the voltage at every point. The graphs stop at the same moment, so you can compare. Use the
 bar at the top left to show or hide currents and voltages, and <b>Resume</b> to carry on.
@@ -229,7 +235,7 @@ the phase in degrees, marks the −3 dB points and reads values under the pointe
         <li><b>All settings…</b> opens every option, such as what the graph plots and its scale.</li>
       </ul></li>
 </ol>
-<p>Drag the line above the graphs to make them taller or shorter. The <b>Scopes</b> menu
+<p>Drag the line above the graphs to make them taller or shorter. The <b>Graphs</b> menu
 stacks or combines all graphs. The graph button in the zoom pill hides the strip when you
 need more room.</p>`,
         keywords: "scope graph plot oscilloscope waveform time chart gear stack combine trigger cursor timebase measurement frequency rms",
@@ -253,14 +259,17 @@ need more room.</p>`,
     {
         id: "layout",
         title: "Layout and options",
-        summary: "Hide the graphs or side panel and choose what is shown.",
+        summary: "Hide the graphs or the Inspector and choose what is shown.",
         body: `
 <p>The two buttons at the left of the zoom pill hide or show the <b>graphs</b> and the
-<b>side panel</b>. With the side panel hidden, Run/Stop and Freeze move into the pill.</p>
-<p>The <b>Options</b> menu turns on and off the tool dock, the dot grid, the minimap,
-the graphs and the side panel. <b>White Background</b> switches between light and dark.
+<b>Inspector</b>.</p>
+<p>The <b>View</b> menu turns on and off the current dots, voltage colours, power view,
+values, the dot grid, the graphs, the Inspector, the action bar, the tool dock and the
+minimap. <b>Light theme</b> (or the sun / moon button in the app bar) switches between light
+and dark. <b>View › Settings</b> has the rest: European resistors, IEC gates, the Ω unit,
+conventional current, the small grid and more.
 Your choices are remembered on this device.</p>`,
-        keywords: "layout hide show side panel graphs options dark light theme dock grid minimap",
+        keywords: "layout hide show side panel inspector graphs view options settings dark light theme dock grid minimap action bar",
     },
     {
         id: "tests",
@@ -268,14 +277,15 @@ Your choices are remembered on this device.</p>`,
         summary: "What changes when the lab is part of a Maestro question.",
         body: `
 <ul>
-  <li>Your circuit is saved by Maestro as you work, so there is no File menu.</li>
+  <li>Your circuit is saved by Maestro as you work, so there is no Circuit menu.</li>
   <li>The question may limit which parts you can use; only those appear in the dock and search.</li>
   <li>Parts of a starter circuit may be <b>locked</b>: you can't select, move or change them,
       but you can connect to them.</li>
   <li>Coral pins with labels are <b>grading points</b>, where your circuit is checked.
       They come with the question: you can't move, delete or add them.</li>
-  <li>The toolbar row is hidden to give you more room. Every tool is in the dock at the
-      bottom, which also has <b>Undo</b> and <b>Redo</b> (or ${k("Ctrl", "Z")} / ${k("Ctrl", "Y")}).
+  <li>The action bar is hidden to give you more room: Running, Reset, Freeze and Speed move
+      up into the app bar, and the dock at the bottom has the tools, with <b>Undo</b> and
+      <b>Redo</b> (or ${k("Ctrl", "Z")} / ${k("Ctrl", "Y")}).
       Undo never removes the question's own parts.</li>
   <li>After you submit, Maestro runs your circuit for a moment and measures it at the grading
       points; your marks come from those readings.</li>
@@ -304,8 +314,8 @@ grading points before you submit. Hover a pin's part or click it to see its read
   <dt>Red dots</dt>
   <dd>Terminals that nearly touch but aren't connected. Drag one onto the other.</dd>
   <dt>Nothing is moving</dt>
-  <dd>The simulation may be stopped (the side panel shows <b>Stopped</b>) or frozen. Click
-      <b>Stopped</b> or <b>Resume</b>. If the dots are too slow to see, raise Current Speed.</dd>
+  <dd>The simulation may be stopped (the action bar shows <b>Stopped</b>) or frozen. Click
+      <b>Stopped</b> or <b>Resume</b>. If the dots are too slow to see, raise Current dots in the Inspector.</dd>
 </dl>
 <p>After fixing the problem, the simulation carries on; press Reset if values look stuck.</p>`,
         keywords: "error problem singular matrix loop resistance convergence red dot stuck not working fix",

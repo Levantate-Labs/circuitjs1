@@ -79,9 +79,9 @@ export function tourSteps(host: TourHost): TourStep[] {
         },
         {
             title: "Run, stop and reset",
-            target: firstOf(visible(".runStop"), visible(".viewRun")),
-            body: "The circuit runs live. Click here to pause or carry on; Reset starts again from zero. " +
-                  "Teal wires are positive, coral negative and grey at 0 V.",
+            target: firstOf(visible(".runControls"), visible(".viewRun")),
+            body: "The circuit runs live. Click Running to pause or carry on; Reset starts again from zero " +
+                  "and Speed sets how fast time passes. Teal wires are positive, coral negative and grey at 0 V.",
         },
         {
             title: "Freeze a moment",
@@ -99,8 +99,8 @@ export function tourSteps(host: TourHost): TourStep[] {
             title: "Move around",
             target: visible(".zoomPill"),
             body: "Scroll to pan and " + kbd("Ctrl") + " + scroll to zoom; " + kbd("Shift") + " + " +
-                  kbd("1") + " fits the circuit. The first buttons here hide the graphs or the side " +
-                  "panel when you need more room.",
+                  kbd("1") + " fits the circuit. The first buttons here hide the graphs or the Inspector " +
+                  "when you need more room.",
         },
         {
             title: "Help is always here",

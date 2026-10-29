@@ -7,9 +7,10 @@
 */
 
 // View toggles: buttons at the left of the zoom pill that show or hide the
-// graph strip (scopes) and the side panel, to give the circuit the whole
-// window. While the side panel is hidden, Run/Stop and Freeze move into the
-// pill so they stay one click away.
+// graph strip (scopes) and the Inspector, to give the circuit the whole
+// window. When neither the action bar nor the app bar shows the run controls
+// (both hidden), Run/Stop and Freeze appear in the pill so they stay one
+// click away.
 
 export interface ViewHost {
     graphsShown(): boolean;
@@ -19,6 +20,7 @@ export interface ViewHost {
     panelShown(): boolean;
     setPanel(on: boolean): void;
     running(): boolean;
+    runControlsShown(): boolean;  // Run/Reset/Freeze visible in a bar
     setRunning(on: boolean): void;
     frozen(): boolean;
     toggleFreeze(): void;
@@ -84,7 +86,8 @@ export class ViewToggles {
     // Called every frame; touches the DOM only when something changed.
     update(): void {
         const h = this.host;
-        const state = [h.graphsShown(), h.graphCount(), h.panelAvailable(), h.panelShown(), h.running(), h.frozen()].join();
+        const state = [h.graphsShown(), h.graphCount(), h.panelAvailable(), h.panelShown(), h.running(), h.frozen(),
+                       h.runControlsShown()].join();
         if (state === this.last)
             return;
         this.last = state;
@@ -92,13 +95,13 @@ export class ViewToggles {
         const n = h.graphCount();
         const count = n > 0 ? " (" + n + ")" : "";
         ViewToggles.set(this.graphs, (h.graphsShown() ? "Hide graphs" : "Show graphs") + count, h.graphsShown(), n === 0);
-        ViewToggles.set(this.panel, h.panelShown() ? "Hide side panel" : "Show side panel", h.panelShown(), !h.panelAvailable());
-        // Run/Stop and Freeze live in the side panel; here only while it's hidden
-        const inPill = h.panelAvailable() && !h.panelShown();
+        ViewToggles.set(this.panel, h.panelShown() ? "Hide the Inspector" : "Show the Inspector", h.panelShown(), !h.panelAvailable());
+        // Run/Stop and Freeze live in the action bar (or the app bar); here only while neither shows
+        const inPill = !h.runControlsShown();
         this.run.innerHTML = h.running() ? ICONS.pause : ICONS.play;
         ViewToggles.set(this.run, h.running() ? "Stop the simulation" : "Run the simulation", null, !inPill);
         ViewToggles.set(this.freeze, h.frozen() ? "Resume the simulation" : "Freeze this instant and show currents and voltages",
                         h.frozen(), !inPill);
-        this.sep.classList.toggle("lvHidden", n === 0 && !h.panelAvailable());
+        this.sep.classList.toggle("lvHidden", n === 0 && !h.panelAvailable() && !inPill);
     }
 }

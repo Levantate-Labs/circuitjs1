@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-30: entries renamed to match the rebuilt menus (Circuit, Edit, Parts, Graphs, View, Settings). See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
@@ -122,26 +123,26 @@ export class CommandPaletteRegistry {
         }
 
         const cm = m.ctrlMetaKey;
-        CommandPaletteRegistry.add("file:newblankcircuit", "New Blank Circuit", "File", "new blank", "file", "newblankcircuit");
-        CommandPaletteRegistry.add("file:importfromtext", "Import From Text...", "File", "import text", "file", "importfromtext");
-        CommandPaletteRegistry.add("file:importfromdropbox", "Import From Dropbox...", "File", "import dropbox", "file", "importfromdropbox");
+        CommandPaletteRegistry.add("file:newblankcircuit", "New blank circuit", "Circuit", "new blank", "file", "newblankcircuit");
+        CommandPaletteRegistry.add("file:importfromtext", "Open from text…", "Circuit", "import text", "file", "importfromtext");
+        CommandPaletteRegistry.add("file:importfromdropbox", "Import From Dropbox...", "Circuit", "import dropbox", "file", "importfromdropbox");
         if (CirSim.isElectron()) {
-            CommandPaletteRegistry.add("file:save", "Save", "File", "save " + cm + "S", "file", "save");
-            CommandPaletteRegistry.add("file:saveas", "Save As...", "File", "save export", "file", "saveas");
+            CommandPaletteRegistry.add("file:save", "Save", "Circuit", "save " + cm + "S", "file", "save");
+            CommandPaletteRegistry.add("file:saveas", "Save as…", "Circuit", "save export", "file", "saveas");
         } else {
-            CommandPaletteRegistry.add("file:exportaslocalfile", "Save As...", "File", "save export " + cm + "S", "file", "exportaslocalfile");
+            CommandPaletteRegistry.add("file:exportaslocalfile", "Save to this device…", "Circuit", "save export download " + cm + "S", "file", "exportaslocalfile");
         }
-        CommandPaletteRegistry.add("file:exportasurl", "Export As Link...", "File", "export url link share", "file", "exportasurl");
-        CommandPaletteRegistry.add("file:exportastext", "Export As Text...", "File", "export text", "file", "exportastext");
-        CommandPaletteRegistry.add("file:exportasimage", "Save As Image...", "File", "export image png", "file", "exportasimage");
-        CommandPaletteRegistry.add("file:copypng", "Copy Circuit Image to Clipboard", "File", "copy image clipboard png", "file", "copypng");
-        CommandPaletteRegistry.add("file:exportassvg", "Save As SVG...", "File", "export svg vector", "file", "exportassvg");
-        CommandPaletteRegistry.add("file:createsubcircuit", "Create Subcircuit...", "File", "subcircuit create", "file", "createsubcircuit");
-        CommandPaletteRegistry.add("file:dcanalysis", "Find DC Operating Point", "File", "dc analysis operating point", "file", "dcanalysis");
-        CommandPaletteRegistry.add("file:recover", "Recover Auto-Save", "File", "recover autosave restore", "file", "recover");
-        CommandPaletteRegistry.add("file:print", "Print...", "File", "print " + cm + "P", "file", "print");
-        CommandPaletteRegistry.add("view:fullscreen", "Toggle Full Screen", "View", "fullscreen", "view", "fullscreen");
-        CommandPaletteRegistry.add("file:about", "About...", "File", "about help", "file", "about");
+        CommandPaletteRegistry.add("file:exportasurl", "Export a link to this circuit…", "Circuit", "export url link share", "file", "exportasurl");
+        CommandPaletteRegistry.add("file:exportastext", "Export the circuit as text…", "Circuit", "export text", "file", "exportastext");
+        CommandPaletteRegistry.add("file:exportasimage", "Export an image (PNG)…", "Circuit", "export image png", "file", "exportasimage");
+        CommandPaletteRegistry.add("file:copypng", "Copy the circuit image", "Circuit", "copy image clipboard png", "file", "copypng");
+        CommandPaletteRegistry.add("file:exportassvg", "Export a vector image (SVG)…", "Circuit", "export svg vector", "file", "exportassvg");
+        CommandPaletteRegistry.add("file:createsubcircuit", "Create a subcircuit…", "Parts", "subcircuit create", "file", "createsubcircuit");
+        CommandPaletteRegistry.add("file:dcanalysis", "Solve DC operating point", "Circuit", "dc analysis operating point", "file", "dcanalysis");
+        CommandPaletteRegistry.add("file:recover", "Restore last session", "Circuit", "recover autosave restore", "file", "recover");
+        CommandPaletteRegistry.add("file:print", "Print…", "Circuit", "print " + cm + "P", "file", "print");
+        CommandPaletteRegistry.add("view:fullscreen", "Full screen", "View", "fullscreen", "view", "fullscreen");
+        CommandPaletteRegistry.add("file:about", "About and licence", "Circuit", "about help licence license", "file", "about");
 
         CommandPaletteRegistry.add("edit:undo", "Undo", "Edit", "undo " + cm + "Z", "edit", "undo");
         CommandPaletteRegistry.add("edit:redo", "Redo", "Edit", "redo " + cm + "Y", "edit", "redo");
@@ -149,34 +150,34 @@ export class CommandPaletteRegistry {
         CommandPaletteRegistry.add("edit:copy", "Copy", "Edit", "copy " + cm + "C", "edit", "copy");
         CommandPaletteRegistry.add("edit:paste", "Paste", "Edit", "paste " + cm + "V", "edit", "paste");
         CommandPaletteRegistry.add("edit:duplicate", "Duplicate", "Edit", "duplicate clone " + cm + "D", "edit", "duplicate");
-        CommandPaletteRegistry.add("edit:selectAll", "Select All", "Edit", "select all " + cm + "A", "edit", "selectAll");
-        CommandPaletteRegistry.add("edit:search", "Find Component/Command...", "Edit", "find component search command palette /", "edit", "search");
-        CommandPaletteRegistry.add("edit:centercircuit", Locale.weAreInUS(false) ? "Center Circuit" : "Centre Circuit", "Edit", "center centre fit", "edit", "centercircuit");
+        CommandPaletteRegistry.add("edit:selectAll", "Select all", "Edit", "select all " + cm + "A", "edit", "selectAll");
+        CommandPaletteRegistry.add("edit:search", "Search parts and commands…", "Edit", "find component search command palette /", "edit", "search");
+        CommandPaletteRegistry.add("edit:centercircuit", Locale.weAreInUS(false) ? "Center the circuit" : "Centre the circuit", "Edit", "center centre fit", "edit", "centercircuit");
         CommandPaletteRegistry.add("zoom:zoom100", "Zoom 100%", "View", "zoom reset 0", "zoom", "zoom100");
         CommandPaletteRegistry.add("zoom:zoomin", "Zoom In", "View", "zoom in +", "zoom", "zoomin");
         CommandPaletteRegistry.add("zoom:zoomout", "Zoom Out", "View", "zoom out -", "zoom", "zoomout");
-        CommandPaletteRegistry.add("edit:mirrorX", "Mirror X", "Edit", "mirror flip x", "edit", "mirrorX");
-        CommandPaletteRegistry.add("edit:mirrorY", "Mirror Y", "Edit", "mirror flip y", "edit", "mirrorY");
-        CommandPaletteRegistry.add("edit:rotateCCW", "Rotate CCW", "Edit", "rotate counterclockwise ccw", "edit", "rotateCCW");
-        CommandPaletteRegistry.add("edit:rotateCW", "Rotate CW", "Edit", "rotate clockwise cw", "edit", "rotateCW");
+        CommandPaletteRegistry.add("edit:mirrorX", "Flip horizontally", "Edit", "mirror flip x", "edit", "mirrorX");
+        CommandPaletteRegistry.add("edit:mirrorY", "Flip vertically", "Edit", "mirror flip y", "edit", "mirrorY");
+        CommandPaletteRegistry.add("edit:rotateCCW", "Rotate left", "Edit", "rotate counterclockwise ccw left", "edit", "rotateCCW");
+        CommandPaletteRegistry.add("edit:rotateCW", "Rotate right", "Edit", "rotate clockwise cw right", "edit", "rotateCW");
 
-        CommandPaletteRegistry.add("scopes:stackAll", "Stack All", "Scopes", "stack scopes", "scopes", "stackAll");
-        CommandPaletteRegistry.add("scopes:unstackAll", "Unstack All", "Scopes", "unstack scopes", "scopes", "unstackAll");
-        CommandPaletteRegistry.add("scopes:combineAll", "Combine All", "Scopes", "combine scopes merge", "scopes", "combineAll");
-        CommandPaletteRegistry.add("scopes:separateAll", "Separate All", "Scopes", "separate scopes split", "scopes", "separateAll");
+        CommandPaletteRegistry.add("scopes:stackAll", "Stack all graphs", "Graphs", "stack scopes graphs", "scopes", "stackAll");
+        CommandPaletteRegistry.add("scopes:unstackAll", "Unstack graphs", "Graphs", "unstack scopes graphs", "scopes", "unstackAll");
+        CommandPaletteRegistry.add("scopes:combineAll", "Overlay all graphs", "Graphs", "combine overlay scopes merge graphs", "scopes", "combineAll");
+        CommandPaletteRegistry.add("scopes:separateAll", "Separate graphs", "Graphs", "separate scopes split graphs", "scopes", "separateAll");
 
-        CommandPaletteRegistry.add("tools:convertWires", "Convert Wires to Routed Wires", "Tools", "convert wires routed", "tools", "convertWires");
-        CommandPaletteRegistry.add("tools:subcircuits", "Subcircuit Manager", "Tools", "subcircuit manager", "tools", "subcircuits");
+        CommandPaletteRegistry.add("tools:convertWires", "Convert wires to routed wires", "Edit", "convert wires routed", "tools", "convertWires");
+        CommandPaletteRegistry.add("tools:subcircuits", "Manage subcircuits…", "Parts", "subcircuit manager", "tools", "subcircuits");
 
-        CommandPaletteRegistry.add("key:runstop", "Run/Stop Simulation", "Simulation", "run stop pause start simulation", "key", "runstop");
+        CommandPaletteRegistry.add("key:runstop", "Run or stop the simulation", "Simulation", "run stop pause start simulation", "key", "runstop");
 
         const dots = m.dotsCheckItem;
-        CommandPaletteRegistry.addToggle("options:showcurrent", "Show Current", "Options", "current dots flow", {
+        CommandPaletteRegistry.addToggle("options:showcurrent", "Current dots", "View", "current dots flow show", {
             execute: () => { dots.toggle(); app.repaint(); }
         });
         const volts = m.voltsCheckItem;
         const power = m.powerCheckItem;
-        CommandPaletteRegistry.addToggle("options:showvoltage", "Show Voltage", "Options", "voltage power bar", {
+        CommandPaletteRegistry.addToggle("options:showvoltage", "Voltage colours", "View", "voltage colors colours show", {
             execute: () => {
                 volts.setState(!volts.getState());
                 if (volts.getState())
@@ -184,7 +185,7 @@ export class CommandPaletteRegistry {
                 app.setPowerBarEnable();
             }
         });
-        CommandPaletteRegistry.addToggle("options:showpower", "Show Power", "Options", "power bar watt", {
+        CommandPaletteRegistry.addToggle("options:showpower", "Power view", "View", "power watt glow show", {
             execute: () => {
                 power.setState(!power.getState());
                 if (power.getState())
@@ -193,57 +194,58 @@ export class CommandPaletteRegistry {
             }
         });
         const showValues = m.showValuesCheckItem;
-        CommandPaletteRegistry.addToggle("options:showvalues", "Show Values", "Options", "values labels", {
+        CommandPaletteRegistry.addToggle("options:showvalues", "Values on parts", "View", "values labels show", {
             execute: () => { showValues.toggle(); app.repaint(); }
         });
         const smallGrid = m.smallGridCheckItem;
-        CommandPaletteRegistry.addToggle("options:smallgrid", "Small Grid", "Options", "grid snap", {
+        CommandPaletteRegistry.addToggle("options:smallgrid", "Small grid", "Settings", "grid snap", {
             execute: () => { smallGrid.toggle(); app.setGrid(); }
         });
         const toolbar = m.toolbarCheckItem;
-        CommandPaletteRegistry.addToggle("options:toolbar", "Toolbar", "Options", "toolbar show hide", {
+        CommandPaletteRegistry.addToggle("options:toolbar", "Action bar", "View", "toolbar action bar show hide", {
             execute: () => { toolbar.toggle(); app.setToolbar(); }
         });
         const crossHair = m.crossHairCheckItem;
-        CommandPaletteRegistry.addToggle("options:crosshair", "Show Cursor Crosshair", "Options", "crosshair cursor", {
+        CommandPaletteRegistry.addToggle("options:crosshair", "Cursor cross hairs", "Settings", "crosshair cursor", {
             execute: () => { crossHair.toggle(); app.setOptionInStorage("crossHair", crossHair.getState()); }
         });
         const euroRes = m.euroResistorCheckItem;
-        CommandPaletteRegistry.addToggle("options:euroresistors", "European Resistors", "Options", "european resistors iec", {
+        CommandPaletteRegistry.addToggle("options:euroresistors", "European resistors", "Settings", "european resistors iec", {
             execute: () => { euroRes.toggle(); app.repaint(); }
         });
         const showOhm = m.showOhmCheckItem;
-        CommandPaletteRegistry.addToggle("options:showohm", "Show Ω Unit", "Options", "ohm unit omega", {
+        CommandPaletteRegistry.addToggle("options:showohm", "Show the Ω unit", "Settings", "ohm unit omega", {
             execute: () => { showOhm.toggle(); app.repaint(); }
         });
         const euroGates = m.euroGatesCheckItem;
-        CommandPaletteRegistry.addToggle("options:eurogates", "IEC Gates", "Options", "iec gates logic", {
+        CommandPaletteRegistry.addToggle("options:eurogates", "IEC logic gates", "Settings", "iec gates logic", {
             execute: () => { euroGates.toggle(); app.repaint(); }
         });
         const printable = m.printableCheckItem;
-        CommandPaletteRegistry.addToggle("options:whitebackground", "White Background", "Options", "white background printable", {
+        CommandPaletteRegistry.addToggle("options:whitebackground", "Light theme", "View", "light dark theme white background printable", {
             execute: () => { printable.toggle(); app.repaint(); }
         });
         const convention = m.conventionCheckItem;
-        CommandPaletteRegistry.addToggle("options:conventionalcurrent", "Conventional Current Motion", "Options", "conventional current", {
+        CommandPaletteRegistry.addToggle("options:conventionalcurrent", "Conventional current", "Settings", "conventional current", {
             execute: () => { convention.toggle(); app.repaint(); }
         });
         const noEdit = m.noEditCheckItem;
-        CommandPaletteRegistry.addToggle("options:disableediting", "Disable Editing", "Options", "disable editing readonly", {
+        CommandPaletteRegistry.addToggle("options:disableediting", "Lock the circuit", "Settings", "lock disable editing readonly", {
             execute: () => { noEdit.toggle(); }
         });
         const mouseWheelEdit = m.mouseWheelEditCheckItem;
-        CommandPaletteRegistry.addToggle("options:mousewheeledit", "Edit Values With Mouse Wheel", "Options", "mouse wheel edit values", {
+        CommandPaletteRegistry.addToggle("options:mousewheeledit", "Change values with the mouse wheel", "Settings", "mouse wheel edit values", {
             execute: () => {
                 mouseWheelEdit.setState(!mouseWheelEdit.getState());
                 app.setOptionInStorage("mouseWheelEdit", mouseWheelEdit.getState());
             }
         });
 
-        CommandPaletteRegistry.add("options:shortcuts", "Shortcuts...", "Options", "keyboard shortcuts keys", "options", "shortcuts");
-        CommandPaletteRegistry.add("options:other", "Other Options...", "Options", "options settings preferences", "options", "other");
+        CommandPaletteRegistry.add("options:settings", "Settings…", "View", "settings options preferences", "options", "settings");
+        CommandPaletteRegistry.add("options:shortcuts", "Keyboard shortcuts…", "View", "keyboard shortcuts keys", "options", "shortcuts");
+        CommandPaletteRegistry.add("options:other", "Colours and more…", "Settings", "options colors colours preferences", "options", "other");
         if (CirSim.isElectron())
-            CommandPaletteRegistry.add("options:devtools", "Toggle Dev Tools", "Options", "developer tools debug", "options", "devtools");
+            CommandPaletteRegistry.add("options:devtools", "Developer tools", "View", "developer tools debug", "options", "devtools");
     }
 
     // Called from Menus.processSetupList() for each circuit entry in setuplist.txt.

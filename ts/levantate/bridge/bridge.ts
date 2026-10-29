@@ -208,9 +208,7 @@ export class Bridge {
             toolbar: ui.toolbar.element,
             mainMenuItems: ui.mainMenuItems,
             mainMenuItemNames: ui.mainMenuItemNames,
-            sidePanel: ui.verticalPanel,
             examHidden: [app.menus.noEditCheckItem._li],
-            onAbout: () => app.commands.menuPerformed("file", "about"),
         });
         // drop the part tool if it was set to one the allow-list now forbids
         if (!Exam.isPartAllowed(ui.mouseModeStr))
