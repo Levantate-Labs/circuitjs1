@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-30: download named data-<time>.txt. See CHANGES.md.
 
 import { CircuitElm } from "./CircuitElm";
 import { CircuitXMLSerializer } from "./CircuitXMLSerializer";
@@ -140,7 +141,7 @@ export class DataRecorderElm extends CircuitElm {
             const now = new Date();
             const pad = (n: number) => String(n).padStart(2, '0');
             const fname = "data-" + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) +
-                "-" + pad(now.getHours()) + pad(now.getMinutes()) + ".circuitjs.txt";
+                "-" + pad(now.getHours()) + pad(now.getMinutes()) + ".txt";
             const url = DataRecorderElm.getBlobUrl(dataStr);
             const a = document.createElement("a");
             a.textContent = fname;

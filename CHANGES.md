@@ -307,6 +307,17 @@ License, version 2 or (at your option) any later version.
 
 ## 2026-10-30
 
+### Product name in what students see
+
+- ts/ExportAsLocalFileDialog.ts: default file name `maestro-circuit-<time>.txt`.
+- ts/AudioOutputElm.ts, ts/DataRecorderElm.ts: downloads named
+  `audio-<time>.wav` and `data-<time>.txt`.
+- ts/ExportAsUrlDialog.ts: links point at the Maestro lab (`LAB_URL` in
+  `ts/levantate/brand.ts`); the short-link service (a script on the original
+  author's server) is off.
+- The copyright notices in source files, COPYING.txt, this file and the
+  About and licence page are unchanged.
+
 ### New lab chrome: app bar, action bar, Inspector
 
 - New `ts/levantate/chrome/` (`appBar.ts`, `actionBar.ts`, `inspector.ts`,

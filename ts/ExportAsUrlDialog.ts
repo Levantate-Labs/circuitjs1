@@ -16,14 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-30: links point at the Maestro lab; no short-link service. See CHANGES.md.
 
 import { Dialog } from "./Dialog";
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
+import { LAB_URL } from "./levantate/brand";
 
 export class ExportAsUrlDialog extends Dialog {
     // set to false at build/deploy time if the target server doesn't have shortrelay.php
-    static readonly shortRelaySupported = true;
+    // (Levantate Labs: the Maestro lab doesn't run one)
+    static readonly shortRelaySupported = false;
 
     textArea: HTMLTextAreaElement;
 
@@ -53,7 +56,7 @@ export class ExportAsUrlDialog extends Dialog {
 
         const start = window.location.href.split("?");
         if (CirSim.isElectron())
-            start[0] = "https://www.falstad.com/circuit/circuitjs.html";
+            start[0] = LAB_URL;
         const compressed = (window as any).LZString.compressToEncodedURIComponent(dump);
         const query = "?ctz=" + compressed;
         const url = start[0] + query;

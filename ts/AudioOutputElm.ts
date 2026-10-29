@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-30: download named audio-<time>.wav. See CHANGES.md.
 
 import { CircuitElm } from "./CircuitElm";
 import { Graphics } from "./Graphics";
@@ -201,7 +202,7 @@ export class AudioOutputElm extends CircuitElm {
             const pad = (x: number) => x.toString().padStart(2, "0");
             const fname = "audio-" + now.getFullYear() +
                 pad(now.getMonth() + 1) + pad(now.getDate()) + "-" +
-                pad(now.getHours()) + pad(now.getMinutes()) + ".circuitjs.wav";
+                pad(now.getHours()) + pad(now.getMinutes()) + ".wav";
             const a = document.createElement("a");
             a.textContent = Locale.LS("Download last played audio");
             a.href = url;

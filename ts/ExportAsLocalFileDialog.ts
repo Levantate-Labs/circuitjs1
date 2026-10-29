@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Modified by Levantate Labs, 2026-10-30: default file name maestro-circuit-<time>.txt. See CHANGES.md.
 
 import { Dialog } from "./Dialog";
 import { Locale } from "./Locale";
@@ -44,7 +45,7 @@ export class ExportAsLocalFileDialog extends Dialog {
     static setLastFileName(s: string | null): void {
         // remember filename for use when saving a new file.
         // if s is null or automatically generated then just clear out old filename.
-        if (s == null || s.startsWith("circuitjs-"))
+        if (s == null || s.startsWith("maestro-circuit-") || s.startsWith("circuitjs-"))
             ExportAsLocalFileDialog.lastFileName = null;
         else
             ExportAsLocalFileDialog.lastFileName = s;
@@ -89,7 +90,7 @@ export class ExportAsLocalFileDialog extends Dialog {
                 + pad(now.getHours())
                 + pad(now.getMinutes())
                 + pad(now.getSeconds());
-            fname = "circuitjs-" + ts + ".txt";
+            fname = "maestro-circuit-" + ts + ".txt";
         }
         tb.value = fname;
 

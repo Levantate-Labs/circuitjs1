@@ -10,5 +10,8 @@
 // CircuitJS1 and its authors, and keeps the GPL notice (GPLv2 section 2(c)).
 export const PRODUCT_NAME = "Maestro Simulation Lab";
 
+// Where the lab is served (links exported from the desktop build point here).
+export const LAB_URL = "https://sim.studywithmaestro.com/workspace/";
+
 // Public source of this fork, linked from the About box (GPLv2 section 3).
 export const SOURCE_URL = "https://github.com/Levantate-Labs/circuitjs1/tree/levantate";
