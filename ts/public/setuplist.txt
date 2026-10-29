@@ -1,6 +1,7 @@
 ### setuplist.txt first line must be a comment
 +Maestro
 >maestro-welcome.txt Maestro Welcome (LED Matrix)
+maestro-dotmatrix.txt Dot Matrix Display (MAESTRO sign)
 -
 +Basics
 ohms.txt Ohm's Law

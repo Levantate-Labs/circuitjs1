@@ -17,7 +17,7 @@
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap / Show Tool Dock / Show Graphs / Show Side Panel; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
-// Modified by Levantate Labs, 2026-10-29: the default circuit is the Maestro welcome on a first visit, a blank canvas after that. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-29: the default circuit is the Maestro welcome on a first visit, a blank canvas after that; Add Dot Matrix Display. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
@@ -594,6 +594,7 @@ export class Menus {
             "Add Decimal Display",            "DecimalDisplayElm",
             "Add Instruction Display",        "InstructionDisplayElm",
             "Add LED Array",                  "LEDArrayElm",
+            "Add Dot Matrix Display",         "DotMatrixElm",
             "Add Data Export",                "DataRecorderElm",
             "Add Audio Output",               "AudioOutputElm",
             "Add Stop Trigger",               "StopTriggerElm",

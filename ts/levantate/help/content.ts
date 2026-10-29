@@ -96,7 +96,7 @@ search results or the Draw menu.</p>`,
     {
         id: "memory",
         title: "Memory chips and LED displays",
-        summary: "ROM, static RAM and the LED array, under Draw › Digital Chips.",
+        summary: "ROM, static RAM, the LED array and the dot matrix display.",
         body: `
 <p>A <b>ROM</b> holds a table of numbers. The address pins (A) pick a row and the data pins (D)
 show that row's number in binary. <b>Static RAM</b> works the same way, and you can also write
@@ -109,9 +109,14 @@ address 0, 255 at 1, 64 at 2 and 32 at 3. You can also load the contents from a 
 column pin. Displays light one column at a time, fast enough that your eye sees the whole
 picture. Open <b>Circuits › Maestro › Maestro Welcome</b> to see a counter and a ROM draw the
 Maestro M, then change the ROM's contents to draw your own letter.</p>
+<p>The <b>dot matrix display</b> (Draw › Outputs and Labels) is a small screen of tiny LEDs with
+its own memory. Put a column number on the <b>X</b> pins, a row number on the <b>Y</b> pins
+and the LED's state on <b>D</b>; a rising edge on <b>WR</b> stores it, and <b>CLR</b> (high)
+turns every LED off. (0, 0) is the top left. Click it to set its width, height and colour.
+<b>Circuits › Maestro › Dot Matrix Display</b> shows a counter and a ROM writing a sign.</p>
 <p class="helpTip">In the ROM's numbers the top data pin (the highest D) is the biggest bit, 128 for
 8 data bits, so 255 lights a whole column and 128 only its top LED.</p>`,
-        keywords: "rom ram sram memory eeprom chip address data contents led array matrix display multiplex digital lookup table",
+        keywords: "rom ram sram memory eeprom chip address data contents led array matrix display multiplex digital lookup table dot screen sign pixel",
     },
     {
         id: "values",

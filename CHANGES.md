@@ -324,6 +324,19 @@ License, version 2 or (at your option) any later version.
 - ts/levantate/help/content.ts: new help section, "Memory chips and LED
   displays" (ROM, static RAM, LED array, how the contents are written).
 
+### Dot matrix display part
+
+- New `ts/levantate/parts/DotMatrixElm.ts` (dump code 4001, XML `LvDotMatrix`)
+  and `dotMatrixFrame.ts` (+ tests): a small screen of tiny LEDs with its own
+  memory, 4–64 LEDs wide and 4–32 high, in red, green, amber, blue or white.
+  X address (bottom) and Y address (left) pick an LED, D is its state, a
+  rising edge on WR stores it and CLR clears the screen. Registered in
+  `ts/levantate/registerElements.ts`.
+- ts/Menus.ts: Draw › Outputs and Labels › Add Dot Matrix Display.
+- New `ts/public/circuits/maestro-dotmatrix.txt`, listed under Circuits ›
+  Maestro: a 10-bit counter and a ROM write "MAESTRO" on a 64 × 16 display.
+- ts/levantate/help/content.ts: the memory section covers the display.
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

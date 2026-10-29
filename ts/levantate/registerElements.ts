@@ -12,8 +12,11 @@
 import { CirSim } from "../CirSim";
 import { ElementFactory } from "../ElementFactory";
 import { GradePointElm } from "./grading/GradePointElm";
+import { DotMatrixElm } from "./parts/DotMatrixElm";
 
 export function registerLevantateElements(): void {
     ElementFactory.registerClass("GradePointElm", GradePointElm as any);
     CirSim.theApp.register("GradePointElm", new GradePointElm(0, 0));
+    ElementFactory.registerClass("DotMatrixElm", DotMatrixElm as any);
+    CirSim.theApp.register("DotMatrixElm", new DotMatrixElm(0, 0));
 }
