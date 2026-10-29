@@ -1,10 +1,13 @@
 ### setuplist.txt first line must be a comment
++Maestro
+>maestro-welcome.txt Maestro Welcome (LED Matrix)
+-
 +Basics
 ohms.txt Ohm's Law
 resistors.txt Resistors
 cap.txt Capacitor
 induct.txt Inductor
->lrc.txt LRC Circuit
+lrc.txt LRC Circuit
 voltdivide.txt Voltage Divider
 pot.txt Potentiometer
 potdivide.txt Potentiometer Divider

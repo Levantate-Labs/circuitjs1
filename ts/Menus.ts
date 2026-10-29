@@ -17,10 +17,12 @@
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
 // Modified by Levantate Labs, 2026-10-27: Options > Show Dot Grid / Show Minimap / Show Tool Dock / Show Graphs / Show Side Panel; Add Grading Point; top-level menu references for exam mode; Dropbox import hidden. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-29: the default circuit is the Maestro welcome on a first visit, a blank canvas after that. See CHANGES.md.
 
 // GWT conversion (c) 2015 by Iain Sharp
 
 import { Exam } from "./levantate/exam/exam";
+import { startCircuit as welcomeStartCircuit } from "./levantate/welcome";
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
@@ -795,9 +797,11 @@ export class Menus {
                         this.app.setCircuitTitle(title);
                     }
                     if (first && app.startCircuit == null) {
-                        app.startCircuit = file;
-                        app.startLabel   = title;
-                        if (openDefault && this.app.stopMessage == null)
+                        const opening = openDefault && this.app.stopMessage == null;
+                        const start = welcomeStartCircuit(file, title, opening);
+                        app.startCircuit = start.file;
+                        app.startLabel   = Locale.LS(start.title);
+                        if (opening)
                             this.readSetupFile(app.startCircuit, app.startLabel);
                     }
                 }

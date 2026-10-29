@@ -305,6 +305,25 @@ License, version 2 or (at your option) any later version.
 - `circuitjs/about.html` credits ngspice (modified BSD), EEcircuit-engine (MIT)
   and Plus Jakarta Sans (OFL).
 
+## 2026-10-29
+
+### Maestro welcome circuit
+
+- New `ts/public/circuits/maestro-welcome.txt`: an 8×8 LED array that shows
+  the Maestro "M". A 500 Hz clock drives a 3-bit counter; the counter
+  addresses a ROM holding one byte per column (the row pattern) and selects
+  the column through a 3-to-8 decoder and transistors. Built from upstream's
+  `ledarray.txt`, with the ROM in place of its custom-logic pattern generator.
+- ts/public/setuplist.txt: new "Maestro" group at the top with the welcome
+  circuit, now the default (the `>` mark moved from `lrc.txt`).
+- New `ts/levantate/welcome.ts` (+ test): the default opens on a device's first
+  visit only (remembered in local storage); after that the lab opens on a
+  blank canvas. Inside a host page the lab starts blank and the visit isn't
+  counted.
+- ts/Menus.ts: the default circuit is chosen through `welcome.ts`.
+- ts/levantate/help/content.ts: new help section, "Memory chips and LED
+  displays" (ROM, static RAM, LED array, how the contents are written).
+
 ## 2026-10-27
 
 ### Precision tools (roadmap slice L7)

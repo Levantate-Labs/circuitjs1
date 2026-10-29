@@ -94,6 +94,26 @@ search results or the Draw menu.</p>`,
         keywords: "dock search palette draw menu transistor led source ac dc component",
     },
     {
+        id: "memory",
+        title: "Memory chips and LED displays",
+        summary: "ROM, static RAM and the LED array, under Draw › Digital Chips.",
+        body: `
+<p>A <b>ROM</b> holds a table of numbers. The address pins (A) pick a row and the data pins (D)
+show that row's number in binary. <b>Static RAM</b> works the same way, and you can also write
+to it while the circuit runs: put a number on D and pull <b>WE</b> low.</p>
+<p>Click a chip to set its <b>address bits</b> and <b>data bits</b> and to edit its
+<b>Contents</b>, one line per run of values: <code>0: 255 255 64 32</code> puts 255 at
+address 0, 255 at 1, 64 at 2 and 32 at 3. You can also load the contents from a file.
+<b>OE</b> must be low (connected to ground) for the data pins to drive anything.</p>
+<p>The <b>LED array</b> is a grid of LEDs: each one lights when its row pin is higher than its
+column pin. Displays light one column at a time, fast enough that your eye sees the whole
+picture. Open <b>Circuits › Maestro › Maestro Welcome</b> to see a counter and a ROM draw the
+Maestro M, then change the ROM's contents to draw your own letter.</p>
+<p class="helpTip">In the ROM's numbers the top data pin (the highest D) is the biggest bit, 128 for
+8 data bits, so 255 lights a whole column and 128 only its top LED.</p>`,
+        keywords: "rom ram sram memory eeprom chip address data contents led array matrix display multiplex digital lookup table",
+    },
+    {
         id: "values",
         title: "Changing values",
         summary: "The properties panel, units and quick adjustments.",
