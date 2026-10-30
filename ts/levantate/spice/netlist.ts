@@ -33,6 +33,7 @@ export interface Netlist {
 }
 
 import { CircuitNode } from "../../CircuitNode";
+import { OPEN_OHMS, SHORT_OHMS, sealOf } from "../faults/faults";
 
 // waveform numbers of VoltageElm
 const WF = { DC: 0, AC: 1, SQUARE: 2, TRIANGLE: 3, SAWTOOTH: 4, PULSE: 5, NOISE: 6, VAR: 7 };
@@ -77,8 +78,16 @@ export function buildNetlist(elms: any[], opts: NetlistOptions = {}): Netlist {
         if (SKIP.has(cls) || ce.isWireEquivalent?.() || ce.isRemovableWire?.())
             continue;
         const type = cls.replace(/Elm$/, "");
+        // a faulty part (levantate/faults): open and short are resistors,
+        // reversed is the part with its two posts swapped
+        const fault = sealOf(ce)?.fault;
+        if (fault === "open" || fault === "short") {
+            lines.push(`${id("R")} ${N(ce, 0)} ${N(ce, 1)} ${num(fault === "open" ? OPEN_OHMS : SHORT_OHMS)}`);
+            continue;
+        }
+        const NP: NodeOf = fault === "reversed" ? (c, i) => N(c, i === 0 ? 1 : i === 1 ? 0 : i) : N;
         try {
-            const line = exportPart(ce, cls, N, id, models, sources, opts.acInput);
+            const line = exportPart(ce, cls, NP, id, models, sources, opts.acInput);
             if (line == null) {
                 unsupported.push(type);
                 lines.push(`* not exported: ${type}`);

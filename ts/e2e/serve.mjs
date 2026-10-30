@@ -42,6 +42,18 @@ export function launch() {
 export const here = path.dirname(fileURLToPath(import.meta.url));
 export const dist = path.resolve(here, "..", "dist");
 
+// The divider as XML with its resistors sealed (levantate/faults); FAULT is
+// R2's fault: "", "open" or "short".
+export const sealedDivider = (fault = "") => `<cir f="1" ts="0.000005" ic="10.2" cb="50" pb="50" vr="5" mts="5e-11">
+  <v x="96 336 96 96" f="0" wf="0" maxv="10"/>
+  <r x="96 96 256 96" f="0" r="1000" lvSeal="R1 1kΩ"/>
+  <r x="256 96 256 336" f="0" r="1000" lvSeal="R2 1kΩ"${fault ? ` lvFault="${fault}"` : ""}/>
+  <w x="96 336 256 336" f="0"/>
+  <LvGradePoint x="256 96 336 48" f="0" k="node" id="gp_vout" lb="Vout"/>
+  <LvGradePoint x="176 96 176 40" f="0" k="branch" id="gp_ir1" lb="I_R1"/>
+</cir>
+`;
+
 export const DIVIDER = `$ 1 0.000005 10.2 50 5 43 5e-11
 v 96 336 96 96 0 0 40 10 0 0 0.5
 r 96 96 256 96 0 1000

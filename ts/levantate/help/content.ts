@@ -283,6 +283,10 @@ Your choices are remembered on this device.</p>`,
       but you can connect to them.</li>
   <li>Coral pins with labels are <b>grading points</b>, where your circuit is checked.
       They come with the question: you can't move, delete or add them.</li>
+  <li>In a fault-finding question some parts are <b>sealed</b>: they show a marking such as
+      "R2 1kΩ" instead of their value, and one of them may be faulty (open, shorted, the wrong
+      value or fitted backwards). Find it by measuring with the multimeter, then type your
+      answers beside the lab.</li>
   <li>The action bar is hidden to give you more room: Running, Reset, Freeze and Speed move
       up into the app bar, and the dock at the bottom has the tools, with <b>Undo</b> and
       <b>Redo</b> (or ${k("Ctrl", "Z")} / ${k("Ctrl", "Y")}).
@@ -292,7 +296,7 @@ Your choices are remembered on this device.</p>`,
 </ul>
 <p class="helpTip">Build the circuit, let it run for a moment, and check the values at the
 grading points before you submit. Hover a pin's part or click it to see its readings.</p>`,
-        keywords: "exam test assignment question locked grading points submit save allowed parts undo redo toolbar marks",
+        keywords: "exam test assignment question locked grading points submit save allowed parts undo redo toolbar marks sealed fault finding faulty",
     },
     {
         id: "problems",

@@ -57,10 +57,11 @@ Simulator → host:
 | type | fields | effect |
 |---|---|---|
 | `hello` | | Simulator replies `ready` |
-| `init` | `circuit?` (string, XML or legacy text, ≤ 256 KB), `exam?` (bool), `parts?` (string[] of part class names, e.g. `"ResistorElm"`; omit or `null` for all), `lockStarter?` (bool), `readOnly?` (bool), `theme?` (`"light"` \| `"dark"`), `dotGrid?` (bool), `running?` (bool), `tour?` (bool, default true: show the first-run tour once per device; never shown with `readOnly`), `compact?` (bool, default = `exam`: menu bar only, the toolbar row's tools move to the tool dock), `instruments?` (bool, default true: the multimeter is available) | Loads and configures; replies `initialized` |
+| `init` | `circuit?` (string, XML or legacy text, ≤ 256 KB), `exam?` (bool), `parts?` (string[] of part class names, e.g. `"ResistorElm"`; omit or `null` for all), `lockStarter?` (bool), `readOnly?` (bool), `theme?` (`"light"` \| `"dark"`), `dotGrid?` (bool), `running?` (bool), `tour?` (bool, default true: show the first-run tour once per device; never shown with `readOnly`), `compact?` (bool, default = `exam`: menu bar only, the toolbar row's tools move to the tool dock), `instruments?` (bool, default true: the multimeter is available), `author?` (bool: a question editor; sealed parts stay editable; ignored with `exam`) | Loads and configures; replies `initialized` |
 | `export` | | Replies `exported` with the current circuit |
 | `setReadOnly` | `value` (bool) | Locks or unlocks all editing (e.g. after submit) |
 | `getGradePoints` | | Replies `gradePoints` |
+| `getSeals` | | Replies `seals` |
 | `resetStats` | | Restarts every grading point's statistics |
 | `measure` | `points: [{ id, measure }]`, `measure` ∈ `value`, `avg`, `rms`, `max`, `min`, `p2p`, `freq`, `period` | Replies `measured` |
 
@@ -75,6 +76,9 @@ Simulator → host:
 - `lockStarter: true` locks every part of the loaded circuit, including grading
   points: they can't be selected, moved, edited, rewired or deleted.
 - Undo history starts empty after `init`.
+- Sealed parts (saved in the circuit as `lvSeal` and `lvFault` attributes)
+  show their marking instead of their value. Unless `author` is set they
+  can't be selected, edited, moved or deleted.
 
 ## Simulator → host
 
@@ -85,6 +89,7 @@ Simulator → host:
 | `changed` | `circuit` (XML) | After edits, at most every ~800 ms |
 | `exported` | `circuit` (XML) | Reply to `export` |
 | `gradePoints` | `points: [{ id, label, kind }]`, `kind` ∈ `node`, `waveform`, `branch`, `power` | After `initialized`, when pins change, reply to `getGradePoints` |
+| `seals` | `seals: [{ type, shown, fault? }]`, `fault` ∈ `""`, `open`, `short`, `reversed`, sent only with `author` | Reply to `getSeals` |
 | `measured` | `values: { [pointId]: { [measure]: number \| null } }`, `simTime` (s) | Reply to `measure`; unknown ids and empty readings are `null` |
 | `integrity` | `event` (`"copy"`, `"cut"`, `"paste"`, `"blocked"`), `detail?` | Exam mode only, when the student uses the clipboard or a blocked action |
 | `error` | `code`, `message` | Bad request; `id` echoed when present |

@@ -20,7 +20,8 @@
 // GWT conversion (c) 2015 by Iain Sharp
 
 // Modified by Levantate Labs, 2026-10-28: instruments' own source parts (function
-// generator, bench supply) are not saved. See CHANGES.md.
+// generator, bench supply) are not saved; 2026-10-31: sealed parts and faults
+// (levantate/faults). See CHANGES.md.
 
 // For information about the theory behind this, see Electronic Circuit & System Simulation Methods by Pillage
 // or https://github.com/sharpie7/circuitjs1/blob/master/INTERNALS.md
@@ -28,6 +29,7 @@
 import { CirSim } from "./CirSim";
 import { CircuitElm } from "./CircuitElm";
 import { HookRegistry } from "./HookRegistry";
+import { writeSealAttrs } from "./levantate/faults/faults";
 
 export class CircuitXMLSerializer {
     app: CirSim;
@@ -127,6 +129,7 @@ export class CircuitXMLSerializer {
                 continue;   // an instrument's output, not part of the circuit
             const elem = doc.createElement(ce.getXmlDumpType());
             ce.dumpXml(doc, elem);
+            writeSealAttrs(elem, ce);   // Levantate Labs
             if (this.saveState)
                 ce.dumpXmlState(doc, elem);
             root.appendChild(elem);

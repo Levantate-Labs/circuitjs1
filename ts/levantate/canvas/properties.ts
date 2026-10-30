@@ -10,7 +10,10 @@
 // panel floating over the right of the canvas instead of a dialog. Edits apply
 // as soon as a field changes (one undo step per panel), and a "Live" section
 // under the fields shows the part's current, voltage, power and so on as the
-// simulation runs. EditDialog builds the fields; this adds the frame.
+// simulation runs. EditDialog builds the fields; this adds the frame, and for
+// authors the Fault finding section (levantate/faults/sealPanel.ts).
+
+import { buildSealSection } from "../faults/sealPanel";
 
 export interface InfoSource {
     getInfo(arr: string[]): void;
@@ -44,7 +47,7 @@ export class PropsPanel {
     private lastUpdate = 0;
 
     constructor(private readonly dialogEl: HTMLElement, title: HTMLElement,
-                private readonly src: InfoSource, close: () => void) {
+                private readonly src: InfoSource, close: () => void, changed: () => void = () => {}) {
         dialogEl.classList.add("propsPanel");
         // the panel names the part ("Resistor"); "Edit" is implied
         title.textContent = (title.textContent ?? "").replace(/^Edit\s+/, "");
@@ -62,6 +65,10 @@ export class PropsPanel {
         x.innerHTML = CLOSE;
         x.addEventListener("click", close);
         header.appendChild(x);
+
+        const seal = buildSealSection(src, () => { changed(); this.update(true); });
+        if (seal != null)
+            dialogEl.appendChild(seal);
 
         this.live = document.createElement("section");
         this.live.className = "propsLive";

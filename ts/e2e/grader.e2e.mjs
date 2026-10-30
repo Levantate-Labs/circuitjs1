@@ -9,7 +9,7 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DIVIDER, here } from "./serve.mjs";
+import { DIVIDER, here, sealedDivider } from "./serve.mjs";
 
 const PORT = 18095 + Math.floor(Math.random() * 1000);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -81,6 +81,31 @@ w 96 336 256 336 0
         const bad = await grade({ analysis: "ac", circuit: rc, out: "gp_out", from: 1, to: 1e6, measures: ["median"] }).then((x) => x.json());
         expect(bad.error.code).toBe("bad-request");
     }, 90_000);
+
+    it("simulates sealed parts' faults", async () => {
+        const points = [{ id: "gp_vout", measure: "avg" }, { id: "gp_ir1", measure: "avg" }];
+        const run = (circuit) => grade({ circuit, settle: 0.01, window: 0.02, points }).then((r) => r.json());
+        const [healthy, open, short] = await Promise.all(["", "open", "short"].map((f) => run(sealedDivider(f))));
+        expect(healthy.values.gp_vout.avg).toBeCloseTo(5, 6);
+        expect(open.values.gp_vout.avg).toBeCloseTo(10, 4);
+        expect(Math.abs(open.values.gp_ir1.avg)).toBeLessThan(1e-6);
+        expect(Math.abs(short.values.gp_vout.avg)).toBeLessThan(1e-3);
+        expect(short.values.gp_ir1.avg).toBeCloseTo(0.01, 5);
+        // a diode fitted backwards conducts nothing
+        const diode = (fault) => `<cir f="1" ts="0.000005" ic="10.2" cb="50" pb="50" vr="5" mts="5e-11">
+  <v x="96 336 96 96" f="0" wf="0" maxv="10"/>
+  <r x="96 96 256 96" f="0" r="1000"/>
+  <d x="256 96 256 336" f="2" lvSeal="D1"${fault ? ` lvFault="${fault}"` : ""}/>
+  <w x="96 336 256 336" f="0"/>
+  <LvGradePoint x="176 96 176 40" f="0" k="branch" id="gp_i" lb="I"/>
+</cir>
+`;
+        const pts = [{ id: "gp_i", measure: "avg" }];
+        const [fwd, rev] = await Promise.all(["", "reversed"].map((f) =>
+            grade({ circuit: diode(f), settle: 0.01, window: 0.02, points: pts }).then((r) => r.json())));
+        expect(fwd.values.gp_i.avg).toBeGreaterThan(0.009);
+        expect(Math.abs(rev.values.gp_i.avg)).toBeLessThan(1e-6);
+    });
 
     it("explains bad requests instead of running them", async () => {
         const r = await grade({ circuit: DIVIDER, settle: 6, window: 6, points: [] }).then((x) => x.json());

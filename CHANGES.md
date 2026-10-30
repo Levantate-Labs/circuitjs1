@@ -305,6 +305,32 @@ License, version 2 or (at your option) any later version.
 - `circuitjs/about.html` credits ngspice (modified BSD), EEcircuit-engine (MIT)
   and Plus Jakarta Sans (OFL).
 
+## 2026-10-31
+
+### Sealed parts and faults (roadmap slice L11)
+
+- `levantate/faults/faults.ts`: a two-terminal part can be sealed: it shows
+  an author's marking ("R2 1kΩ") instead of its value and, in a student's lab,
+  can't be selected, edited, moved or deleted, and its info shows only the
+  marking. A sealed part can be faulty: open, short (each simulated as a
+  resistor between its posts) or reversed (polar parts: its own model with the
+  posts swapped). A fault replaces the part's methods on that one object, so
+  the simulator, the grading service and the SPICE export see the fault while
+  the part is drawn as the healthy one. A wrong value needs no flag.
+- Saved as `lvSeal` and `lvFault` attributes on the part's XML element
+  (`CircuitXMLSerializer.ts`, `CircuitXMLDeserializer.ts`).
+- `levantate/faults/sealPanel.ts`: the properties panel's Fault finding
+  section, for authors (`levantate/canvas/properties.ts`, `EditDialog.ts`).
+- The multimeter's ohms mode reads a faulty part as it is
+  (`levantate/instruments/meterLogic.ts`); the SPICE export writes open and
+  short as resistors and swaps a reversed part's posts
+  (`levantate/spice/netlist.ts`).
+- Bridge: `init` takes `author` (a question editor: sealed parts stay
+  editable); `getSeals` replies with the sealed parts' markings, and their
+  faults to an author only (`levantate/bridge/bridge.ts`,
+  `docs/bridge-protocol.md`).
+- Help: sealed parts in "In a test or assignment".
+
 ## 2026-10-30
 
 ### Old toolbar code removed; phone layout

@@ -14,6 +14,7 @@ import { UndoManager } from "../../UndoManager";
 import { Exam, applyExamUI } from "../exam/exam";
 import { GradePointElm } from "../grading/GradePointElm";
 import { MEASURES, type Measure } from "../grading/signalStats";
+import { Seal, refreshSeals, sealOf } from "../faults/faults";
 
 export const PROTOCOL_VERSION = 1;
 const MAX_CIRCUIT_CHARS = 256 * 1024;
@@ -137,6 +138,9 @@ export class Bridge {
             app.menus.noEditCheckItem.setState(!!msg.value);
             app.repaint();
             return;
+        case "getSeals":
+            this.post({ type: "seals", id: msg.id, seals: this.seals() });
+            return;
         case "getGradePoints":
             this.post({ type: "gradePoints", id: msg.id, points: this.gradePoints() });
             return;
@@ -151,6 +155,20 @@ export class Bridge {
         this.error("unknown-type", "unknown message type " + msg.type, msg.id);
     }
 
+    // Sealed parts, in circuit order: their markings, and (to an author's
+    // editor only) their faults.
+    private seals(): { type: string; shown: string; fault?: string }[] {
+        const out: { type: string; shown: string; fault?: string }[] = [];
+        for (const ce of this.app.elmList as any[]) {
+            const s = sealOf(ce);
+            if (s == null)
+                continue;
+            const type = String(ce.constructor?.name ?? "").replace(/Elm$/, "");
+            out.push(Seal.author ? { type, shown: s.shown, fault: s.fault } : { type, shown: s.shown });
+        }
+        return out;
+    }
+
     private init(msg: HostMessage, origin: string): void {
         const app = this.app;
         if (msg.circuit != null && (typeof msg.circuit !== "string" || msg.circuit.length > MAX_CIRCUIT_CHARS)) {
@@ -161,6 +179,8 @@ export class Bridge {
 
         Exam.embedded = true;
         Exam.active = !!msg.exam;
+        // an author's editor: sealed parts stay editable and keep their faults visible
+        Seal.author = !!msg.author && !msg.exam;
         Exam.allowedParts = Array.isArray(msg.parts) ? new Set(msg.parts.map(String)) : null;
         Exam.enforcing = false;   // the starter circuit may contain any part
 
@@ -173,6 +193,7 @@ export class Bridge {
                 return;
             }
         }
+        refreshSeals(app.elmList);   // for the mode just set
         if (msg.lockStarter)
             Exam.lockStarter(app.elmList, (ce) => app.deleteSliders(ce));
         else

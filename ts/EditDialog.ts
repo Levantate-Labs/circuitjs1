@@ -30,7 +30,8 @@ import { PropsPanel } from "./levantate/canvas/properties";
 
 // Modified by Levantate Labs, 2026-10-28: part editors are a floating properties
 // panel that applies edits as you make them and shows live values
-// (levantate/canvas/properties.ts). See CHANGES.md.
+// (levantate/canvas/properties.ts); 2026-10-31: the panel's Fault finding section
+// (levantate/faults). See CHANGES.md.
 
 const ROOT2 = 1.41421356237309504880;
 
@@ -105,7 +106,8 @@ export class EditDialog extends Dialog {
         // they're made, so it needs no Apply/OK/Cancel row
         const asPanel = ce instanceof CircuitElm;
         if (asPanel)
-            this.panel = new PropsPanel(this.dialogEl, titleEl, ce as CircuitElm, () => this.closeDialog());
+            this.panel = new PropsPanel(this.dialogEl, titleEl, ce as CircuitElm, () => this.closeDialog(),
+                () => this.cframe.needAnalyze());
 
         this.buildDialog();
 

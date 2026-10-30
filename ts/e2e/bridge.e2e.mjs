@@ -8,7 +8,7 @@
 */
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DIVIDER, dist, here, launch, serveDir } from "./serve.mjs";
+import { DIVIDER, dist, here, launch, sealedDivider, serveDir } from "./serve.mjs";
 
 let lab, host, browser, page, frame;
 
@@ -98,5 +98,54 @@ describe("embedding protocol", () => {
         await page.waitForTimeout(300);
         const hidden = await frame.evaluate(() => document.querySelector(".toolDock").classList.contains("lvHidden"));
         expect(hidden).toBe(true);
+    });
+
+    it("shows sealed parts' markings, and their faults only to an author", async () => {
+        const load = (opts) => page.evaluate(async ([circuit, opts]) => {
+            const n = window.received.length;
+            window.send("init", { circuit, tour: false, running: true, ...opts });
+            await window.waitFor("initialized", n);
+            const m = window.received.length;
+            window.send("getSeals");
+            return (await window.waitFor("seals", m)).seals;
+        }, [sealedDivider("open"), opts]);
+        expect(await load({ exam: true })).toEqual([
+            { type: "Resistor", shown: "R1 1kΩ" }, { type: "Resistor", shown: "R2 1kΩ" }]);
+        expect(await load({ author: true })).toEqual([
+            { type: "Resistor", shown: "R1 1kΩ", fault: "" }, { type: "Resistor", shown: "R2 1kΩ", fault: "open" }]);
+        // the seal survives a save
+        expect(await exportCircuit()).toContain('lvFault="open"');
+    });
+
+    it("lets an author seal a part and make it faulty from its properties panel", async () => {
+        await page.evaluate(async (circuit) => {
+            const n = window.received.length;
+            window.send("init", { circuit, author: true, tour: false, running: true });
+            await window.waitFor("initialized", n);
+        }, DIVIDER);
+        // place a resistor on an empty part of the canvas, then open its panel
+        await (await frame.$(".toolDockButton[title^='Add Resistor']")).click();
+        const canvas = await (await frame.$(".canvasWrapper > canvas")).boundingBox();
+        const x = canvas.x + canvas.width - 260, y = canvas.y + 120;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x + 96, y, { steps: 8 });
+        await page.mouse.up();
+        await (await frame.$(".toolDockButton[title^='Select']")).click();
+        await page.mouse.dblclick(x + 48, y);
+        const seal = await frame.waitForSelector(".propsSeal", { timeout: 5000 });
+        expect(await seal.textContent()).toContain("Fault finding");
+
+        const n = await page.evaluate(() => window.received.length);
+        await (await seal.$("input[type=checkbox]")).check();
+        await (await seal.$("select")).selectOption("open");
+        const changed = await page.evaluate((after) => window.waitFor("changed", after), n);
+        expect(changed.circuit).toMatch(/lvSeal="[^"]*"/);
+        const seals = await page.evaluate(async () => {
+            const m = window.received.length;
+            window.send("getSeals");
+            return (await window.waitFor("seals", m)).seals;
+        });
+        expect(seals).toEqual([{ type: "Resistor", shown: expect.any(String), fault: "open" }]);
     });
 });

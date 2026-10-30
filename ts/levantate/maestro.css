@@ -1076,6 +1076,51 @@ dialog.circuitDialog.propsPanel {
 .propsLive dd { margin: 0; text-align: right; font-weight: 600; color: var(--text-strong); }
 .propsLive dd.propsNote { grid-column: 1 / -1; text-align: left; font-weight: 500; color: var(--text-muted); }
 
+/* the Fault finding section, for authors (levantate/faults/sealPanel.ts) */
+.propsSeal {
+    margin: 14px -14px 0;
+    padding: 10px 14px 0;
+    border-top: 1px solid var(--border);
+}
+
+.propsSealTitle {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.propsSealRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.propsSealRow input { margin: 2px 0 0; accent-color: var(--primary); flex: none; }
+
+.propsSealField {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.propsSealNote {
+    margin: 8px 0 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
 .circuitDialog input.lvInvalid,
 .circuitDialog input.lvInvalid:focus {
     border-color: var(--error);

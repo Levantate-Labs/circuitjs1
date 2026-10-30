@@ -10,6 +10,8 @@
 // finding what a probe tip touches, resistance between the probes, and how a
 // reading is shown.
 
+import { effectiveResistance } from "../faults/faults";
+
 export type MeterMode = "dcv" | "acv" | "dca" | "aca" | "ohm";
 
 export interface PointLike { x: number; y: number; }
@@ -87,7 +89,7 @@ export function resistanceBetween(red: ProbeContact | null, black: ProbeContact 
         return 0;
     if (red.elm !== black.elm || red.post === black.post || red.elm.getPostCount() !== 2)
         return NaN;
-    const r = red.elm.resistance;
+    const r = effectiveResistance(red.elm);   // a faulty part reads as it is
     return typeof r === "number" && isFinite(r) ? r : NaN;
 }
 

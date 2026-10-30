@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with CircuitJS1.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Modified by Levantate Labs, 2026-10-27: skip parts that can't be created instead of crashing. See CHANGES.md.
+// Modified by Levantate Labs, 2026-10-27: skip parts that can't be created instead of crashing; 2026-10-31: sealed parts and faults (levantate/faults). See CHANGES.md.
 
 import { CirSim } from "./CirSim";
 import { CircuitElm } from "./CircuitElm";
@@ -28,6 +28,7 @@ import { MosfetModel } from "./MosfetModel";
 import { CustomLogicModel } from "./CustomLogicModel";
 import { Scope } from "./Scope";
 import { HookRegistry } from "./HookRegistry";
+import { readSealAttrs } from "./levantate/faults/faults";
 
 export class CircuitXMLDeserializer {
     app: CirSim;
@@ -183,6 +184,7 @@ export class CircuitXMLDeserializer {
             this.currentElm = elm;
             elm.undumpXml(this);
             elm.setPositionFromXml(elem);
+            readSealAttrs(elem, elm);   // Levantate Labs: sealed parts and faults
             this.app.elmList.push(elm);
         }
     }
