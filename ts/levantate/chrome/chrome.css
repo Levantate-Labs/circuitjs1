@@ -291,9 +291,21 @@ dialog.circuitDialog.lvSettings {
 
     .toptriggerlabel { top: 12px; }
 
-    .gwt-MenuBar-horizontal.appBar > table.appBarMenus { top: 44px; height: auto; margin: 0; }
+    .gwt-MenuBar-horizontal.appBar > table.appBarMenus { top: 44px; height: auto; margin: 0; z-index: 7; }
 
     td.gwt-MenuItem > .menuDropdown { top: 44px; }
 
     .actionHint { display: none; }
+
+    /* the edit tools scroll sideways; Run and Freeze move to the zoom pill
+       (UIManager.runControlsShown) */
+    .toolbar.actionBar {
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding: 0 6px;
+    }
+
+    .actionBar .toolbarButton { flex: none; }
+
+    .actionRunSlot { display: none; }
 }

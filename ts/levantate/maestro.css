@@ -669,14 +669,26 @@ dialog.circuitDialog::backdrop {
         background: var(--card);
     }
 
-    /* the side panel is wider than upstream's 128px (see UIManager VERTICALPANELWIDTH) */
+    /* the side panel (the Inspector) is wider than upstream's 128px (see
+       UIManager VERTICALPANELWIDTH); its tab sits below the action bar and the
+       zoom pill */
+    .triggerLabel {
+        top: 140px;
+    }
+
     .trigger:checked + .triggerLabel {
-        right: 176px;
+        right: 220px;
     }
 
     .trigger:checked ~ .verticalPanel {
-        width: 176px !important;
+        width: 220px !important;
+        z-index: 6;   /* over the zoom pill */
     }
+
+    .trigger:checked + .triggerLabel { z-index: 6; }
+
+    /* the tab opens and closes the Inspector here, not the pill */
+    .zoomPill .viewToggle.viewPanel { display: none; }
 }
 
 /* ---- Canvas navigation (levantate/canvas/navigation.ts) ---- */

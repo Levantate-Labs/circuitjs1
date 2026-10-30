@@ -711,6 +711,7 @@ export class UIManager {
             execute: () => {
                 this.setOptionInStorage("euroResistors", this.menus.euroResistorCheckItem.getState());
                 this.toolbar.setEuroResistors(this.menus.euroResistorCheckItem.getState());
+                this.dock?.refreshIcons();
             }
         });
         this.menus.showOhmCheckItem.setState(showOhm);
@@ -884,12 +885,6 @@ export class UIManager {
             contentBounds: () => this.getCircuitBounds(),
             repaint: () => this.repaint(),
         }, this.canvasWrapper);
-        const tb: any = this.toolbar;
-        const partIcons: Record<string, string> = {
-            WireElm: tb.wireIcon, ResistorElm: tb.resistorIcon, CapacitorElm: tb.capacitorIcon,
-            InductorElm: tb.inductIcon, DiodeElm: tb.diodeIcon, DCVoltageElm: tb.voltage2Icon,
-            GroundElm: tb.groundIcon, SwitchElm: tb.switchIcon, OpAmpElm: tb.opAmpBotIcon,
-        };
         this.dock = new ToolDock({
             enabled: () => this.dockShown(),
             historyButtons: () => !this.menus.toolbarCheckItem.getState(),
@@ -906,7 +901,7 @@ export class UIManager {
                     if (c === cls) return String.fromCharCode(code);
                 return null;
             },
-            partIcon: (cls) => partIcons[cls] ? tb.makeSvg(partIcons[cls], 24) : null,
+            partIcon: (cls) => this.toolbar.partIcon(cls, 24),
             run: (menu, item) => this.app.commands.menuPerformed(menu, item),
             beginDrag: (cls, x, y) => this.mouse.beginToolbarDrag(cls, x, y),
             instrumentsAllowed: () => this.instrumentsAllowed,
@@ -1815,7 +1810,10 @@ export class UIManager {
         const bar = this.buttonPanel?.parentElement;
         if (bar == null)
             return false;
-        return bar === this.toolbar.runSlot ? this.menus.toolbarCheckItem.getState() : !this.hideMenu;
+        if (bar === this.toolbar.runSlot)
+            // phones: the action bar has no room for them (chrome.css hides the slot)
+            return this.menus.toolbarCheckItem.getState() && !window.matchMedia("(max-width: 600px)").matches;
+        return !this.hideMenu;
     }
 
     setToolbar(): void {

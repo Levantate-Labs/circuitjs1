@@ -171,6 +171,15 @@ export class ToolDock {
         return s;
     }
 
+    // Redraw the part icons (after the resistor symbol setting changes).
+    refreshIcons(): void {
+        for (const b of this.el.querySelectorAll<HTMLElement>(".toolDockButton[data-elm-class]")) {
+            const icon = this.host.partIcon(b.dataset.elmClass!);
+            if (icon != null)
+                b.innerHTML = icon;
+        }
+    }
+
     // Called once per frame: position above the scopes and mark the active tool.
     update(): void {
         const on = this.host.enabled();

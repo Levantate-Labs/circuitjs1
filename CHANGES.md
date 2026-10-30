@@ -307,6 +307,19 @@ License, version 2 or (at your option) any later version.
 
 ## 2026-10-30
 
+### Old toolbar code removed; phone layout
+
+- `Toolbar.ts`: the part buttons, their variant popups and the touch-drag
+  code for them are gone (the action bar, tool dock and Parts menu replaced
+  them). It keeps the icons the tool dock draws and gains `partIcon()`, which
+  follows the European resistor setting.
+- `levantate/canvas/dock.ts`: `refreshIcons()` redraws the part icons;
+  `UIManager.ts` calls it when the resistor symbol setting changes.
+- Phones (600px and narrower): the action bar scrolls sideways, Run and
+  Freeze show in the zoom pill (`UIManager.runControlsShown`, `chrome.css`),
+  the Inspector opens 220px wide and its tab sits below the zoom pill
+  (`levantate/maestro.css`).
+
 ### Product name in what students see
 
 - ts/ExportAsLocalFileDialog.ts: default file name `maestro-circuit-<time>.txt`.
